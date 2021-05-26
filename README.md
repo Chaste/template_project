@@ -1,14 +1,7 @@
 # A template user project for use with Chaste.
 
-**Note - you probably *don't* want to fork this on Github!**
-If you do it will stay linked to this repository, and then you won't be allowed to fork any more similar projects!
+You now simply click the big green "Use this template" button to use a copy of this repository as the basis of your own new repository under your github username/organisation (this 'template' status avoids complications with forks all being linked back to this repo).
 
-Instead, select `Import repository` from the `+` menu at the top right of this page whilst logged in to your GitHub account.
-
-Paste:
-
-    https://github.com/Chaste/template_project.git
-
-as the location, give it a personalised name, and click `Begin import`.  This operation should only take a few seconds.
+Alternatively, if you aren't a github user, you can download a zip (see Releases button) and start your own repository with that.
 
 Then see the [User Projects](https://chaste.cs.ox.ac.uk/trac/wiki/ChasteGuides/UserProjects) guide page on the Chaste wiki for more information.
