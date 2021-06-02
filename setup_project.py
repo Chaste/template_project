@@ -56,7 +56,7 @@ def ask_for_response(question):
     no = {'no', 'n'}
 
     # Take the lower case raw input
-    choice = raw_input().lower()
+    choice = input().lower()
 
     # Decide on the choice
     if choice in yes:
