@@ -106,12 +106,12 @@ def main():
     sanitized_name = sanitize_project_name(project_name)
    
     substitutions = { # These are very specific to avoid rewriting the printed out "Hello world" message
-        "TestHello": "TestHello" +  sanitized_name,
+        "TestHello": "TestHello_" +  sanitized_name,
         "HELLO": "HELLO_" + sanitized_name.upper(),
-        "Hello world(": "Hello" + sanitized_name + " world(",
-        "class Hello": "class Hello" + sanitized_name,
-        "Hello::": "Hello" + sanitized_name + "::",
-        "Hello(": "Hello" + sanitized_name + "("
+        "Hello world(": "Hello_" + sanitized_name + " world(",
+        "class Hello": "class Hello_" + sanitized_name,
+        "Hello::": "Hello_" + sanitized_name + "::",
+        "Hello(": "Hello_" + sanitized_name + "("
     }
     
     files_to_sub = appended_file_names + [str(os.path.join(path_to_project, 'test', 'ContinuousTestPack.txt'))]
