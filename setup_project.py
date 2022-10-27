@@ -68,8 +68,16 @@ def ask_for_response(question):
         ask_for_response("Please respond with yes or no:")
 
 
+# Appends text_to_append before the file extension
 def append_to_file_name(text_to_append, file):
-    os.rename(file, file.replace('.', text_to_append + '.'))
+    new_name = file.replace('.', text_to_append + '.')
+    os.rename(file, new_name)
+    return new_name
+    
+
+# Converts a project name to something that will be valid to append to a C++ class name
+def sanitize_project_name(project_name):
+    return ''.join(filter(lambda char: char.isalpha() or char.isnumeric(), project_name))
 
 
 def main():
@@ -92,11 +100,28 @@ def main():
 
     # Append project name to required files
     append_project_name = partial(append_to_file_name, '_' + project_name)
-    for file in files_requiring_append:
-        append_project_name(file)
+    appended_file_names = list(map(append_project_name, files_requiring_append))
 
+    # Perform the find-and-replace tasks to update the template project source
+    sanitized_name = sanitize_project_name(project_name)
+   
+    substitutions = { # These are very specific to avoid rewriting the printed out "Hello world" message
+        "TestHello": "TestHello" +  sanitized_name,
+        "HELLO": "HELLO_" + sanitized_name.upper(),
+        "Hello world(": "Hello" + sanitized_name + " world(",
+        "class Hello": "class Hello" + sanitized_name,
+        "Hello::": "Hello" + sanitized_name + "::",
+        "Hello(": "Hello" + sanitized_name + "("
+    }
+    
+    files_to_sub = appended_file_names + [str(os.path.join(path_to_project, 'test', 'ContinuousTestPack.txt'))]
 
-    # Perform the find-and-replace tasks to update the template project
+    for file in files_to_sub:
+        for old, new in substitutions.items():
+            find_and_replace(file, old, new)
+     
+
+    # Perform the find-and-replace tasks to update the template project cmake   
     find_and_replace(base_cmakelists, 'chaste_do_project(template_project', 'chaste_do_project(' + project_name)
     find_and_replace(apps_cmakelists, 'chaste_do_apps_project(template_project', 'chaste_do_apps_project(' + project_name)
     find_and_replace(test_cmakelists, 'chaste_do_test_project(template_project', 'chaste_do_test_project(' + project_name)
