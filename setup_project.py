@@ -31,6 +31,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import os
+from functools import partial
 
 
 def find_and_replace(filename, old_string, new_string):
@@ -67,6 +68,10 @@ def ask_for_response(question):
         ask_for_response("Please respond with yes or no:")
 
 
+def append_to_file_name(text_to_append, file):
+    os.rename(file, file.replace('.', text_to_append + '.'))
+
+
 def main():
     # The absolute path to the project directory
     path_to_project = os.path.dirname(os.path.realpath(__file__))
@@ -78,6 +83,18 @@ def main():
     base_cmakelists = os.path.join(path_to_project, 'CMakeLists.txt')
     apps_cmakelists = os.path.join(path_to_project, 'apps', 'CMakeLists.txt')
     test_cmakelists = os.path.join(path_to_project, 'test', 'CMakeLists.txt')
+
+    # Files to append project name to - this avoids conflicts if mutliple projects are generated from the template project
+    files_requiring_append = [os.path.join(path_to_project, 'apps', 'src', 'ExampleApp.cpp'),
+                              os.path.join(path_to_project, 'src', 'Hello.cpp'),
+                              os.path.join(path_to_project, 'src', 'Hello.hpp'),
+                              os.path.join(path_to_project, 'test', 'TestHello.hpp')]
+
+    # Append project name to required files
+    append_project_name = partial(append_to_file_name, '_' + project_name)
+    for file in files_requiring_append:
+        append_project_name(file)
+
 
     # Perform the find-and-replace tasks to update the template project
     find_and_replace(base_cmakelists, 'chaste_do_project(template_project', 'chaste_do_project(' + project_name)
