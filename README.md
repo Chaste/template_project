@@ -4,6 +4,6 @@ You now simply click the big green "Use this template" button to use a copy of t
 
 Alternatively, if you aren't a github user, you can download a zip (see Releases button) and start your own repository with that.
 
-Then see the [User Projects](https://chaste.cs.ox.ac.uk/trac/wiki/ChasteGuides/UserProjects) guide page on the Chaste wiki for more information.
+Then see the [User Projects](https://chaste.github.io/docs/user-guides/user-projects/) guide page on the Chaste website for more information.
 
 If you clone this repository, you should make sure to rename the template_project folder with your project name and run the 'setup_project.py' script to avoid conflicts if you have multiple projects.
