@@ -65,12 +65,13 @@ def ask_for_response(question):
     elif choice in no:
         return False
     else:
-        ask_for_response("Please respond with yes or no:")
+        return ask_for_response("Please respond with yes or no:")
 
 
 # Appends text_to_append before the file extension
 def append_to_file_name(text_to_append, file):
-    new_name = file.replace('.', text_to_append + '.')
+    root, ext = os.path.splitext(file)
+    new_name = root + text_to_append + ext
     os.rename(file, new_name)
     return new_name
 
@@ -113,7 +114,6 @@ def main():
         "class Hello": "class Hello_" + sanitized_name,
         "Hello::": "Hello_" + sanitized_name + "::",
         "Hello(": "Hello_" + sanitized_name + "(",
-        "TestHello.hpp": "TestHello_" + project_name + ".hpp",
         "Hello.hpp": "Hello_" + project_name + ".hpp"
     }
 
