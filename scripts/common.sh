@@ -40,6 +40,15 @@ require_configured() {
 	fi
 }
 
+# Abort unless the Chaste source directory exists.
+require_source() {
+	if [[ ! -f "${CHASTE_SOURCE_DIR}/CMakeLists.txt" ]]; then
+		echo "Error: '${CHASTE_SOURCE_DIR}' is not a Chaste source directory." >&2
+		echo "Set CHASTE_SOURCE_DIR to the location of your Chaste source." >&2
+		exit 1
+	fi
+}
+
 # Remove a file or directory (recursively), refusing unsafe targets (an empty
 # path, the filesystem root, or the project root) to guard against catastrophic
 # deletes. For a symlink, only the link itself is removed, not its target.

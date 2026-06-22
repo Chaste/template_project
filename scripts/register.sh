@@ -16,11 +16,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/common.sh"
 
 # Check that the Chaste source directory exists.
-if [[ ! -d "${CHASTE_SOURCE_DIR}" ]]; then
-	echo "Error: Chaste source directory not found at '${CHASTE_SOURCE_DIR}'." >&2
-	echo "Set CHASTE_SOURCE_DIR to override the default sibling checkout path." >&2
-	exit 1
-fi
+require_source
 
 # Register the project
 project_link="${CHASTE_PROJECTS_DIR}/${PROJECT_NAME}"

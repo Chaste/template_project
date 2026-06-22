@@ -11,8 +11,9 @@ fi
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/common.sh"
 
-# Check that cmake is available.
+# Check that cmake is available and the Chaste source exists.
 require_command cmake
+require_source
 
 # Ensure this project is registered under Chaste/projects/.
 "${common_dir}/register.sh"
