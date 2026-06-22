@@ -119,15 +119,12 @@ def ask_for_response(question: str) -> bool:
 
     An empty response defaults to yes; any unrecognised response re-prompts.
     """
-    # Display the question
-    print(question)
-
     # Define permitted yes/no answers
     yes = {"yes", "y", "ye", ""}
     no = {"no", "n"}
 
-    # Take the lower case raw input
-    choice = input().lower()
+    # Display the question and take the lower case response
+    choice = input(question).lower()
 
     # Decide on the choice
     if choice in yes:
@@ -152,9 +149,9 @@ def append_to_file_name(text_to_append: str, file: str) -> str:
 def setup(settings: Settings) -> None:
     """Customise the template for this project, after confirming the chosen settings."""
     # Confirm the template directory has been renamed to the project name before making any changes.
-    print(f"This project will be set up using '{settings.PROJECT_NAME}' (the directory name) as the project name.")
+    print(f"Make sure to rename the 'template_project' directory to your project name before running this script.")
+    print(f"The current project name is '{settings.PROJECT_NAME}' (same as the current directory name).")
     if not ask_for_response("Do you want to proceed? [Y/n] "):
-        print(f"Rename the '{settings.PROJECT_NAME}' directory to your project name, then run this script again.")
         return
 
     # Recompute settings in case the directory name has changed
@@ -199,6 +196,17 @@ def setup(settings: Settings) -> None:
     # Replace the default components if any optional components were selected
     if components:
         find_and_replace(settings.BASE_CMAKELISTS, " ".join(settings.DEFAULT_COMPONENTS), " ".join(components))
+
+    # Summarise the changes that were made
+    print("")
+    print(f"Setup complete.")
+    print(f"The following changes were made for project '{settings.PROJECT_NAME}':")
+    print("* Substituted the project name in all files.")
+    if components:
+        print(f"* Set Chaste components in CMakeLists.txt to: {', '.join(components)}.")
+    print(f"* Renamed the template files:")
+    for original, renamed in zip(settings.TEMPLATE_SOURCE_FILES, appended_file_names):
+        print(f"  - {os.path.basename(original)} -> {os.path.basename(renamed)}")
 
 
 def main() -> None:
