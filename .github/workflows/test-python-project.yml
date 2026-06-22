@@ -2,7 +2,7 @@ name: Test Python Project
 
 on:
   push:
-    branches: ["**"]
+    branches: ["main"]
   pull_request:
     branches: ["**"]
 
@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout template
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Create test project
         run: |
