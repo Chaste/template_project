@@ -16,6 +16,7 @@ jobs:
 
     container:
       image: chaste/develop
+      options: --user root
 
     env:
       CHASTE_BUILD_DIR: /tmp/build
@@ -24,7 +25,10 @@ jobs:
 
     steps:
       - name: Checkout template
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+
+      - name: Mark Chaste source as safe for git
+        run: git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
 
       - name: Create test project
         run: |
