@@ -27,13 +27,13 @@ project_link="${CHASTE_PROJECTS_DIR}/${PROJECT_NAME}"
 
 mkdir -p "${CHASTE_PROJECTS_DIR}"
 
-if [[ -L "${project_link}" && "${project_link}" -ef "${repo_root}" ]]; then
+if [[ -L "${project_link}" && "${project_link}" -ef "${PROJECT_ROOT}" ]]; then
 	: # Already registered: a symlink under Chaste/projects/ points back to this project.
-elif [[ ! -L "${project_link}" && "${project_link}" -ef "${repo_root}" ]]; then
+elif [[ ! -L "${project_link}" && "${project_link}" -ef "${PROJECT_ROOT}" ]]; then
 	: # Already registered: the project itself lives directly under Chaste/projects/.
 elif [[ -L "${project_link}" ]]; then
 	# Repoint a stale/dangling symlink.
-	ln -sfn "${repo_root}" "${project_link}"
+	ln -sfn "${PROJECT_ROOT}" "${project_link}"
 	echo "Re-registered project '${PROJECT_NAME}' under '${CHASTE_PROJECTS_DIR}'."
 elif [[ -e "${project_link}" ]]; then
 	# Another project already exists with this name.
@@ -42,6 +42,6 @@ elif [[ -e "${project_link}" ]]; then
 	exit 1
 else
 	# Create a new symlink under Chaste/projects/.
-	ln -s "${repo_root}" "${project_link}"
+	ln -s "${PROJECT_ROOT}" "${project_link}"
 	echo "Registered project '${PROJECT_NAME}' under '${CHASTE_PROJECTS_DIR}'."
 fi

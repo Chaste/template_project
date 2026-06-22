@@ -24,8 +24,8 @@ source "${script_dir}/common.sh"
 
 # Check that git is available and that this is the project's git repository.
 require_command git
-if ! git -C "${repo_root}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-	echo "Error: '${repo_root}' is not a git repository." >&2
+if ! git -C "${PROJECT_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+	echo "Error: '${PROJECT_ROOT}' is not a git repository." >&2
 	exit 1
 fi
 
@@ -48,24 +48,21 @@ fi
 # Remove this project's registration symlink under Chaste/projects/ (only if it
 # is a symlink pointing back here, never a real directory living there).
 project_link="${CHASTE_PROJECTS_DIR}/${PROJECT_NAME}"
-if [[ -L "${project_link}" && "${project_link}" -ef "${repo_root}" ]]; then
+if [[ -L "${project_link}" && "${project_link}" -ef "${PROJECT_ROOT}" ]]; then
 	rm -f "${project_link}"
 	echo "Removed Chaste registration symlink '${project_link}'."
 fi
 
 # Remove generated build/output directories. These may resolve outside the repo
-# (via CHASTE_BUILD_DIR/CHASTE_TEST_OUTPUT), so handle them explicitly and guard
-# against deleting the repository root or the filesystem root.
+# (via CHASTE_BUILD_DIR/CHASTE_TEST_OUTPUT), so handle them explicitly.
 for dir in "${CHASTE_BUILD_DIR}" "${CHASTE_TEST_OUTPUT}"; do
-	if [[ -n "${dir}" && "${dir}" != "/" && "${dir}" != "${repo_root}" ]]; then
-		rm -rf "${dir}"
-	fi
+	safe_remove_dir "${dir}"
 done
 
 # Restore tracked files to their committed state, then remove any remaining
 # untracked/ignored files (e.g. files renamed by setup_project.py), keeping
 # this scripts/ directory.
-git -C "${repo_root}" reset --hard
-git -C "${repo_root}" clean -fdx --exclude=/scripts
+git -C "${PROJECT_ROOT}" reset --hard
+git -C "${PROJECT_ROOT}" clean -fdx --exclude=/scripts
 
 echo "Reset template '${PROJECT_NAME}' to its original state."

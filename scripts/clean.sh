@@ -16,7 +16,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/common.sh"
 
 # Clean the build directory.
-rm -rf "${CHASTE_BUILD_DIR}"
+safe_remove_dir "${CHASTE_BUILD_DIR}"
 mkdir -p "${CHASTE_BUILD_DIR}"
 
 echo "Cleaned build in '${CHASTE_BUILD_DIR}'."
