@@ -66,24 +66,6 @@ class Settings:
         self.APPS_CMAKELISTS = os.path.join(self.PROJECT_ROOT, "apps", "CMakeLists.txt")
         self.TEST_CMAKELISTS = os.path.join(self.PROJECT_ROOT, "test", "CMakeLists.txt")
 
-        self.CMAKE_PROJECT_SUBSTITUTIONS = [
-            (
-                self.BASE_CMAKELISTS,
-                "chaste_do_project(template_project)",
-                f"chaste_do_project({self.PROJECT_NAME})",
-            ),
-            (
-                self.APPS_CMAKELISTS,
-                "chaste_do_apps_project(template_project)",
-                f"chaste_do_apps_project({self.PROJECT_NAME})",
-            ),
-            (
-                self.TEST_CMAKELISTS,
-                "chaste_do_test_project(template_project)",
-                f"chaste_do_test_project({self.PROJECT_NAME})",
-            ),
-        ]
-
         # Map of template text -> project text applied to the source and test files.
         # These are deliberately specific to avoid rewriting the printed "Hello world" message.
         self.SOURCE_SUBSTITUTIONS = {
@@ -175,15 +157,17 @@ def setup(settings: Settings) -> None:
         raise SystemExit(1)
 
     # Confirm the template directory has been renamed to the project name before making any changes.
-    print(f"Make sure to rename the 'template_project' directory to your project name before running this script.")
+    print("Make sure to rename the 'template_project' directory to your project name before running this script.")
     print(f"The current project name is '{settings.PROJECT_NAME}' (same as the current directory name).")
     if not ask_for_response("Do you want to proceed?", default=True):
         return
 
     # Check that the project name is a valid C++ name.
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", settings.PROJECT_NAME):
-        print(f"""Error: the project name '{settings.PROJECT_NAME}' contains characters other than letters, digits,
-            and underscores. Renaming the directory is recommended.""")
+        print(
+            f"ERROR: the project name '{settings.PROJECT_NAME}' is not a valid C++ name."
+            "Renaming the directory is recommended."
+        )
         raise SystemExit(1)
 
     # Ask which Chaste components this project depends on
@@ -213,8 +197,19 @@ def setup(settings: Settings) -> None:
             find_and_replace(file, old, new)
 
     # Set the project name in the CMakeLists.txt files
-    for cmake_file, template_text, project_text in settings.CMAKE_PROJECT_SUBSTITUTIONS:
-        find_and_replace(cmake_file, template_text, project_text)
+    find_and_replace(
+        settings.BASE_CMAKELISTS, "chaste_do_project(template_project)", f"chaste_do_project({settings.PROJECT_NAME}))"
+    )
+    find_and_replace(
+        settings.APPS_CMAKELISTS,
+        "chaste_do_apps_project(template_project)",
+        f"chaste_do_apps_project({settings.PROJECT_NAME})",
+    )
+    find_and_replace(
+        settings.TEST_CMAKELISTS,
+        "chaste_do_test_project(template_project)",
+        f"chaste_do_test_project({settings.PROJECT_NAME})",
+    )
 
     # Replace the default components if any optional components were selected
     if components:
@@ -222,12 +217,12 @@ def setup(settings: Settings) -> None:
 
     # Summarise the changes that were made
     print("")
-    print(f"Setup complete.")
+    print("Setup complete.")
     print(f"The following changes were made for project '{settings.PROJECT_NAME}':")
     print("* Substituted the project name in all files.")
     if components:
         print(f"* Set Chaste components in CMakeLists.txt to: {', '.join(components)}.")
-    print(f"* Renamed the template files:")
+    print("* Renamed the template files:")
     for original, renamed in zip(settings.TEMPLATE_SOURCE_FILES, appended_file_names):
         print(f"  - {os.path.basename(original)} -> {os.path.basename(renamed)}")
 
