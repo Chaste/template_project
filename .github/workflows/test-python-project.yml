@@ -18,13 +18,13 @@ jobs:
       image: chaste/develop
 
     env:
-      CHASTE_BUILD_DIR: ${{ runner.temp }}/build
-      CHASTE_TEST_OUTPUT: ${{ runner.temp }}/testoutput
-      PROJECT_DIR: ${{ runner.temp }}/myproject
+      CHASTE_BUILD_DIR: /tmp/build
+      CHASTE_TEST_OUTPUT: /tmp/testoutput
+      PROJECT_DIR: /tmp/myproject
 
     steps:
       - name: Checkout template
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create test project
         run: |
