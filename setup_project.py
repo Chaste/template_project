@@ -108,25 +108,28 @@ def find_and_replace(filename: str, old_string: str, new_string: str) -> None:
         f.write(contents.replace(old_string, new_string))
 
 
-def ask_for_response(question: str) -> bool:
+def ask_for_response(question: str, default: bool = False) -> bool:
     """Prompt the user with a yes/no question and return the answer as a bool.
 
-    An empty response defaults to yes; any unrecognised response re-prompts.
+    An empty response returns default; any unrecognised response re-prompts.
     """
     # Define permitted yes/no answers
-    yes = {"yes", "y", "ye", ""}
+    yes = {"yes", "y", "ye"}
     no = {"no", "n"}
 
-    # Display the question and take the lower case response
-    choice = input(question).lower()
+    # Show the default option in uppercase
+    options = "[Y/n]" if default else "[y/N]"
+    choice = input(f"{question} {options} ").lower()
 
     # Decide on the choice
-    if choice in yes:
+    if choice == "":
+        return default
+    elif choice in yes:
         return True
     elif choice in no:
         return False
     else:
-        return ask_for_response("Please respond with yes or no:")
+        return ask_for_response("Please respond with yes or no:", default)
 
 
 def append_to_file_name(text_to_append: str, file: str) -> str:
@@ -174,19 +177,19 @@ def setup(settings: Settings) -> None:
     # Confirm the template directory has been renamed to the project name before making any changes.
     print(f"Make sure to rename the 'template_project' directory to your project name before running this script.")
     print(f"The current project name is '{settings.PROJECT_NAME}' (same as the current directory name).")
-    if not ask_for_response("Do you want to proceed? [Y/n] "):
+    if not ask_for_response("Do you want to proceed?", default=True):
         return
 
     # Check that the project name is a valid C++ name.
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", settings.PROJECT_NAME):
         print(f"""Error: the project name '{settings.PROJECT_NAME}' contains characters other than letters, digits,
             and underscores. Renaming the directory is recommended.""")
-        return
+        raise SystemExit(1)
 
     # Ask which Chaste components this project depends on
     components: list[str] = []
     for component in settings.OPTIONAL_COMPONENTS:
-        if ask_for_response(f"Does this project depend on the {component} component? [Y/n] "):
+        if ask_for_response(f"Does this project depend on the {component} component?"):
             components.append(component)
 
     # Summarise the chosen options and confirm before making any changes
@@ -195,7 +198,7 @@ def setup(settings: Settings) -> None:
     print(f"  Project name:      {settings.PROJECT_NAME}")
     print(f"  Chaste components: {', '.join(components) if components else '(template default)'}")
     print("")
-    if not ask_for_response("Proceed with these settings? [Y/n] "):
+    if not ask_for_response("Proceed with these settings?"):
         print("No changes made.")
         return
 
