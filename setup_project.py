@@ -102,6 +102,31 @@ def main():
     apps_cmakelists = os.path.join(path_to_project, 'apps', 'CMakeLists.txt')
     test_cmakelists = os.path.join(path_to_project, 'test', 'CMakeLists.txt')
 
+    # Ask which Chaste components this project depends on
+    components_list = []
+
+    if ask_for_response("Does this project depend on the cell_based component? [Y/n] "):
+        components_list.append('cell_based')
+
+    if ask_for_response("Does this project depend on the crypt component? [Y/n] "):
+        components_list.append('crypt')
+
+    if ask_for_response("Does this project depend on the heart component? [Y/n] "):
+        components_list.append('heart')
+
+    if ask_for_response("Does this project depend on the lung component? [Y/n] "):
+        components_list.append('lung')
+
+    # Summarise the chosen options and confirm before making any changes
+    print("")
+    print("Summary:")
+    print("  Project name:      " + project_name)
+    print("  Chaste components: " + (', '.join(components_list) if components_list else "(template default)"))
+    print("")
+    if not ask_for_response("Proceed with these settings? [Y/n] "):
+        print("No changes made.")
+        return
+
     # Files to append project name to - this avoids conflicts if mutliple projects are generated from the template project
     files_requiring_append = [os.path.join(path_to_project, 'apps', 'src', 'ExampleApp.cpp'),
                               os.path.join(path_to_project, 'src', 'Hello.cpp'),
@@ -137,21 +162,6 @@ def main():
     find_and_replace(base_cmakelists, 'chaste_do_project(template_project', 'chaste_do_project(' + project_name)
     find_and_replace(apps_cmakelists, 'chaste_do_apps_project(template_project', 'chaste_do_apps_project(' + project_name)
     find_and_replace(test_cmakelists, 'chaste_do_test_project(template_project', 'chaste_do_test_project(' + project_name)
-
-    # Amend the components
-    components_list = []
-
-    if ask_for_response("Does this project depend on the cell_based component? [Y/n] "):
-        components_list.append('cell_based')
-
-    if ask_for_response("Does this project depend on the crypt component? [Y/n] "):
-        components_list.append('crypt')
-
-    if ask_for_response("Does this project depend on the heart component? [Y/n] "):
-        components_list.append('heart')
-
-    if ask_for_response("Does this project depend on the lung component? [Y/n] "):
-        components_list.append('lung')
 
     # If the list is non-empty, replace the default components
     if components_list:
