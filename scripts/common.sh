@@ -7,6 +7,11 @@ common_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "${common_dir}/.." && pwd)"
 
 CHASTE_BUILD_DIR="${CHASTE_BUILD_DIR:-${PROJECT_ROOT}/build}"
+if [[ "${CHASTE_BUILD_DIR}" == "${PROJECT_ROOT}" ]]; then
+	echo "Error: CHASTE_BUILD_DIR must not be the project root '${PROJECT_ROOT}'." >&2
+	echo "Set CHASTE_BUILD_DIR to a separate build directory." >&2
+	exit 1
+fi
 
 CHASTE_SOURCE_DIR="${CHASTE_SOURCE_DIR:-${PROJECT_ROOT}/../Chaste}"
 CHASTE_PROJECTS_DIR="${CHASTE_SOURCE_DIR}/projects"
@@ -16,6 +21,13 @@ export CHASTE_TEST_OUTPUT="${CHASTE_TEST_OUTPUT}"
 
 # The name of this project is the name of the project directory.
 PROJECT_NAME="$(basename "${PROJECT_ROOT}")"
+
+if [[ -f "${PROJECT_ROOT}/dynamic/config.yaml" ]]; then
+	# Enable pychaste if this project has Python bindings set up.
+	Chaste_ENABLE_PYCHASTE=ON
+else
+	Chaste_ENABLE_PYCHASTE="${Chaste_ENABLE_PYCHASTE:-OFF}"
+fi
 
 # Set the number of parallel jobs for building and testing.
 NCORES="${NCORES:-4}"
@@ -54,7 +66,7 @@ require_source() {
 # deletes. For a symlink, only the link itself is removed, not its target.
 safe_rm() {
 	local path="$1"
-	if [[ -z "${path}" || "${path}" == "/" || "${path}" == "${PROJECT_ROOT}" ]]; then
+	if [[ -z "${path}" || "${path}" == "/" || "${path}" == "${PROJECT_ROOT}"  || "${path}" == "${CHASTE_SOURCE_DIR}" ]]; then
 		echo "Error: refusing to remove unsafe path '${path}'." >&2
 		exit 1
 	fi

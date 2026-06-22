@@ -36,6 +36,7 @@ Run this script from the project directory once it has been renamed to your proj
 
 import os
 import re
+import shutil
 
 
 class Settings:
@@ -80,6 +81,29 @@ class Settings:
         }
 
         self.TEST_PACK_FILES = [os.path.join(self.PROJECT_ROOT, "test", "ContinuousTestPack.txt")]
+
+        # Python binding template files (substituted if Python bindings opted in, deleted otherwise).
+        self.PYTHON_BINDING_FILES = [
+            os.path.join(self.PROJECT_ROOT, "dynamic", "config.yaml"),
+            os.path.join(self.PROJECT_ROOT, "dynamic", "CMakeLists.txt"),
+            os.path.join(self.PROJECT_ROOT, "src", "py", "MANIFEST.in"),
+            os.path.join(self.PROJECT_ROOT, "src", "py", "setup.cfg"),
+            os.path.join(self.PROJECT_ROOT, "src", "py", "template_project", "__init__.py"),
+        ]
+
+        # Substitutions applied to all Python binding files.
+        self.PYTHON_BINDING_SUBSTITUTIONS = {
+            "template_project": self.PROJECT_NAME,
+        }
+
+        # Additional substitutions applied only to dynamic/config.yaml.
+        self.PYTHON_CONFIG_SUBSTITUTIONS = {
+            "Hello.hpp": f"Hello_{self.PROJECT_NAME}.hpp",
+            "name: Hello": f"name: Hello_{self.PROJECT_NAME}",
+        }
+
+        # Python package template directory (renamed to <project_name>/ during setup).
+        self.PYTHON_PKG_TEMPLATE_DIR = os.path.join(self.PROJECT_ROOT, "src", "py", "template_project")
 
 
 def find_and_replace(filename: str, old_string: str, new_string: str) -> None:
@@ -176,11 +200,15 @@ def setup(settings: Settings) -> None:
         if ask_for_response(f"Does this project depend on the {component} component?"):
             components.append(component)
 
+    # Ask whether to create Python bindings
+    python_bindings = ask_for_response("Do you want to create Python bindings for this project?")
+
     # Summarise the chosen options and confirm before making any changes
     print("")
     print("Summary:")
     print(f"  Project name:      {settings.PROJECT_NAME}")
     print(f"  Chaste components: {', '.join(components) if components else '(template default)'}")
+    print(f"  Python bindings:   {'Yes' if python_bindings else 'No'}")
     print("")
     if not ask_for_response("Proceed with these settings?"):
         print("No changes made.")
@@ -198,7 +226,7 @@ def setup(settings: Settings) -> None:
 
     # Set the project name in the CMakeLists.txt files
     find_and_replace(
-        settings.BASE_CMAKELISTS, "chaste_do_project(template_project)", f"chaste_do_project({settings.PROJECT_NAME}))"
+        settings.BASE_CMAKELISTS, "chaste_do_project(template_project)", f"chaste_do_project({settings.PROJECT_NAME})"
     )
     find_and_replace(
         settings.APPS_CMAKELISTS,
@@ -215,16 +243,41 @@ def setup(settings: Settings) -> None:
     if components:
         find_and_replace(settings.BASE_CMAKELISTS, " ".join(settings.DEFAULT_COMPONENTS), " ".join(components))
 
+    # Set up or remove Python bindings
+    if python_bindings:
+        # Substitute the project name into all Python binding files
+        for file in settings.PYTHON_BINDING_FILES:
+            for old, new in settings.PYTHON_BINDING_SUBSTITUTIONS.items():
+                find_and_replace(file, old, new)
+        # Substitute class names and headers into config.yaml
+        config_yaml = os.path.join(settings.PROJECT_ROOT, "dynamic", "config.yaml")
+        for old, new in settings.PYTHON_CONFIG_SUBSTITUTIONS.items():
+            find_and_replace(config_yaml, old, new)
+        # Rename the Python package directory (template_project/ -> <project_name>/)
+        new_pkg_dir = os.path.join(settings.PROJECT_ROOT, "src", "py", settings.PROJECT_NAME)
+        os.rename(settings.PYTHON_PKG_TEMPLATE_DIR, new_pkg_dir)
+    else:
+        # Remove the Python binding template files
+        shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "dynamic"))
+        shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "src", "py"))
+
     # Summarise the changes that were made
     print("")
     print("Setup complete.")
     print(f"The following changes were made for project '{settings.PROJECT_NAME}':")
     print("* Substituted the project name in all files.")
+
     if components:
         print(f"* Set Chaste components in CMakeLists.txt to: {', '.join(components)}.")
     print("* Renamed the template files:")
+
     for original, renamed in zip(settings.TEMPLATE_SOURCE_FILES, appended_file_names):
         print(f"  - {os.path.basename(original)} -> {os.path.basename(renamed)}")
+
+    if python_bindings:
+        print("* Set up Python bindings in dynamic/ and src/py/.")
+    else:
+        print("* Removed Python bindings template files in dynamic/ and src/py/.")
 
 
 def main() -> None:

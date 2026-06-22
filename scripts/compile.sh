@@ -23,4 +23,9 @@ require_configured
 
 # Build.
 cd "${CHASTE_BUILD_DIR}"
-cmake --build . --target "project_${PROJECT_NAME}" --parallel "${NCORES}"
+if [[ "${Chaste_ENABLE_PYCHASTE}" == "ON" ]]; then
+	cmake --build . --target pychaste --parallel "${NCORES}"
+	cmake --build . --target "_${PROJECT_NAME}_all" --parallel "${NCORES}"
+else
+	cmake --build . --target "project_${PROJECT_NAME}" --parallel "${NCORES}"
+fi

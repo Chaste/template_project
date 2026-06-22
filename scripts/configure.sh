@@ -21,6 +21,5 @@ require_source
 # Create the build directory
 mkdir -p "${CHASTE_BUILD_DIR}"
 
-# Configure.
-cd "${CHASTE_BUILD_DIR}"
-cmake "${CHASTE_SOURCE_DIR}"
+# Configure
+cmake "${CHASTE_SOURCE_DIR}" -DChaste_ENABLE_PYCHASTE="${Chaste_ENABLE_PYCHASTE:-OFF}"
