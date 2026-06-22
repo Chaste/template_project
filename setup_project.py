@@ -88,6 +88,15 @@ def main():
     # Identify the name of the project
     project_name = os.path.basename(path_to_project)
 
+    # Confirm the template directory has been renamed to the project name before making any changes.
+    print("This project will be set up using '" + project_name + "' (the directory name) as the project name.")
+    if not ask_for_response("Do you want to proceed? [Y/n] "):
+        print("Rename the '" + project_name + "' directory to your project name, then run this script again.")
+        return
+
+    # Refresh the project name
+    project_name = os.path.basename(path_to_project)
+
     # Paths to the CMakeLists.txt files
     base_cmakelists = os.path.join(path_to_project, 'CMakeLists.txt')
     apps_cmakelists = os.path.join(path_to_project, 'apps', 'CMakeLists.txt')
