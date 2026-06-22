@@ -32,13 +32,10 @@ fi
 # Confirm before discarding local changes, unless forced.
 if [[ "${force}" -ne 1 ]]; then
 	echo "This will reset the template to its original (committed) state:"
-	echo "  - all tracked files reset to HEAD (local changes discarded)"
-	echo "  - '${CHASTE_BUILD_DIR}' and '${CHASTE_TEST_OUTPUT}' removed"
-	echo "  - untracked files created by setup_project.py removed"
-	echo "  - this project's Chaste registration symlink removed"
+	echo "All uncommitted changes will be removed, and untracked files will be deleted."
 	echo "  ('${script_dir}' is preserved.)"
 	reply=""
-	read -r -p "Proceed? [y/N] " reply || true
+	read -r -p "Proceed? [Y/n] " reply || true
 	case "${reply}" in
 		y | Y | yes | Yes) ;;
 		*) echo "Aborted."; exit 0 ;;
@@ -49,14 +46,14 @@ fi
 # is a symlink pointing back here, never a real directory living there).
 project_link="${CHASTE_PROJECTS_DIR}/${PROJECT_NAME}"
 if [[ -L "${project_link}" && "${project_link}" -ef "${PROJECT_ROOT}" ]]; then
-	rm -f "${project_link}"
+	safe_rm "${project_link}"
 	echo "Removed Chaste registration symlink '${project_link}'."
 fi
 
 # Remove generated build/output directories. These may resolve outside the repo
 # (via CHASTE_BUILD_DIR/CHASTE_TEST_OUTPUT), so handle them explicitly.
 for dir in "${CHASTE_BUILD_DIR}" "${CHASTE_TEST_OUTPUT}"; do
-	safe_remove_dir "${dir}"
+	safe_rm "${dir}"
 done
 
 # Restore tracked files to their committed state, then remove any remaining

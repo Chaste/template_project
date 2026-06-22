@@ -40,13 +40,14 @@ require_configured() {
 	fi
 }
 
-# Recursively remove a directory, refusing unsafe targets (an empty path, the
-# filesystem root, or the project root) to guard against catastrophic deletes.
-safe_remove_dir() {
-	local dir="$1"
-	if [[ -z "${dir}" || "${dir}" == "/" || "${dir}" == "${PROJECT_ROOT}" ]]; then
-		echo "Error: refusing to remove unsafe path '${dir}'." >&2
+# Remove a file or directory (recursively), refusing unsafe targets (an empty
+# path, the filesystem root, or the project root) to guard against catastrophic
+# deletes. For a symlink, only the link itself is removed, not its target.
+safe_rm() {
+	local path="$1"
+	if [[ -z "${path}" || "${path}" == "/" || "${path}" == "${PROJECT_ROOT}" ]]; then
+		echo "Error: refusing to remove unsafe path '${path}'." >&2
 		exit 1
 	fi
-	rm -rf "${dir}"
+	rm -rf "${path}"
 }
