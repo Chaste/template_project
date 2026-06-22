@@ -48,13 +48,7 @@ class Settings:
     OPTIONAL_COMPONENTS = ["cell_based", "crypt", "heart", "lung"]
 
     def __init__(self) -> None:
-        self.update()
-
-    def update(self) -> None:
-        """Recompute the paths and substitutions from the current project directory.
-
-        Call this after the project directory is renamed so the values derived from it are refreshed.
-        """
+        """Set the paths and substitutions from the current project directory."""
         # The project directory and its name (taken from the directory this script lives in).
         self.PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
         self.PROJECT_NAME = os.path.basename(self.PROJECT_ROOT)
@@ -146,16 +140,42 @@ def append_to_file_name(text_to_append: str, file: str) -> str:
     return new_name
 
 
+def print_banner(*lines: str) -> None:
+    """Print the given lines framed in a banner box."""
+    width = max(len(line) for line in lines)
+    border = "*" * (width + 4)
+    print(border)
+    for line in lines:
+        print(f"* {line.ljust(width)} *")
+    print(border)
+
+
+def is_setup(settings: Settings) -> bool:
+    """Return True if the project has already been set up (any of the example files are renamed)."""
+    return not all(os.path.exists(file) for file in settings.TEMPLATE_SOURCE_FILES)
+
+
 def setup(settings: Settings) -> None:
     """Customise the template for this project, after confirming the chosen settings."""
+    # Abort if the project has already been configured.
+    if is_setup(settings):
+        print_banner(
+            "ERROR: This Chaste user project has already been setup.",
+            "If you want to run setup again, use a fresh copy of the template.",
+            "",
+            "Alternatively, try the steps below to reset this template.",
+            "Note that any changes you have made will be lost forever!!!",
+            "1. Run 'git checkout -- .' in the project directory to restore the original files.",
+            "2. Run 'git clean -f -- .' in the project directory to remove all new files.",
+            "3. Run this script again to set up the project.",
+        )
+        raise SystemExit(1)
+
     # Confirm the template directory has been renamed to the project name before making any changes.
     print(f"Make sure to rename the 'template_project' directory to your project name before running this script.")
     print(f"The current project name is '{settings.PROJECT_NAME}' (same as the current directory name).")
     if not ask_for_response("Do you want to proceed? [Y/n] "):
         return
-
-    # Recompute settings in case the directory name has changed
-    settings.update()
 
     # Check that the project name is a valid C++ name.
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", settings.PROJECT_NAME):
