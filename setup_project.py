@@ -34,10 +34,8 @@
 Run this script from the project directory once it has been renamed to your project name.
 """
 
-import argparse
 import os
 import re
-import subprocess
 
 
 class Settings:
@@ -108,29 +106,12 @@ class Settings:
         self.TEST_PACK_FILES = [os.path.join(self.PROJECT_ROOT, "test", "ContinuousTestPack.txt")]
 
 
-def find_and_replace(filename: str, pattern: str, replacement: str, regex: bool = False) -> None:
-    """Replace occurrences of pattern with replacement in a file, in place.
-
-    By default pattern is treated as literal text. Pass regex=True to treat it as
-    a regular expression, matched with re.MULTILINE so ^ and $ anchor to line
-    boundaries.
-    """
-    if not regex:
-        pattern = re.escape(pattern)
+def find_and_replace(filename: str, old_string: str, new_string: str) -> None:
+    """Replace every occurrence of old_string with new_string in a file, in place."""
     with open(filename, "r") as f:
         contents = f.read()
     with open(filename, "w") as f:
-        f.write(re.sub(pattern, replacement, contents, flags=re.MULTILINE))
-
-
-def print_banner(*lines: str) -> None:
-    """Print the given lines framed in a banner box."""
-    width = max(len(line) for line in lines)
-    border = "*" * (width + 4)
-    print(border)
-    for line in lines:
-        print(f"* {line.ljust(width)} *")
-    print(border)
+        f.write(contents.replace(old_string, new_string))
 
 
 def ask_for_response(question: str) -> bool:
@@ -166,18 +147,6 @@ def append_to_file_name(text_to_append: str, file: str) -> str:
     new_name = root + text_to_append + ext
     os.rename(file, new_name)
     return new_name
-
-
-def is_git_repository(path: str) -> bool:
-    """Return True if path is inside a git working tree."""
-    try:
-        result = subprocess.run(
-            ["git", "-C", path, "rev-parse", "--is-inside-work-tree"],
-            capture_output=True,
-        )
-    except FileNotFoundError:
-        return False
-    return result.returncode == 0
 
 
 def setup(settings: Settings) -> None:
@@ -232,69 +201,10 @@ def setup(settings: Settings) -> None:
         find_and_replace(settings.BASE_CMAKELISTS, " ".join(settings.DEFAULT_COMPONENTS), " ".join(components))
 
 
-def reset(settings: Settings) -> None:
-    """Reset the template to its original state using git, discarding setup's changes.
-
-    The project must be a git repository: the tracked template files are restored
-    to their committed state and the setup-renamed example files are removed.
-    """
-    # The project can only be reset from a git repository.
-    if not is_git_repository(settings.PROJECT_ROOT):
-        print("Error: the project can only be reset if it is a git repository.")
-        raise SystemExit(1)
-
-    # Confirm before discarding any changes.
-    print_banner(
-        "Caution: This will reset the template to its original state!!!",
-        "Any changes to the example source and CMakeLists.txt files will be lost!!!",
-    )
-    if not ask_for_response("Proceed? [Y/n] "):
-        print("Aborted.")
-        raise SystemExit(1)
-
-    # Remove the setup-renamed example source files (these are untracked by git).
-    suffix = "_" + settings.PROJECT_NAME
-    for original in settings.TEMPLATE_SOURCE_FILES:
-        root, ext = os.path.splitext(original)
-        renamed = root + suffix + ext
-        if os.path.exists(renamed):
-            os.remove(renamed)
-
-    # Restore the tracked template files to their committed state.
-    tracked_files = settings.TEMPLATE_SOURCE_FILES + settings.TEST_PACK_FILES + [
-        settings.BASE_CMAKELISTS,
-        settings.APPS_CMAKELISTS,
-        settings.TEST_CMAKELISTS,
-    ]
-    subprocess.run(
-        ["git", "-C", settings.PROJECT_ROOT, "checkout", "HEAD", "--", *tracked_files],
-        check=True,
-    )
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(
-        prog="setup_project",
-        description="Set up a Chaste user project from the template.",
-    )
-    parser.add_argument(
-        "--reset",
-        action="store_true",
-        help="Restore the template to its original state",
-    )
-    return parser.parse_args()
-
-
 def main() -> None:
-    """Set up the project from the template, or restore the template with --reset."""
-    args = parse_args()
+    """Set up the project from the template."""
     settings = Settings()
-
-    if args.reset:
-        reset(settings)
-    else:
-        setup(settings)
+    setup(settings)
 
 
 if __name__ == "__main__":
