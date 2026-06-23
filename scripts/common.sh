@@ -42,6 +42,8 @@ fi
 # The name of this project is the name of the project directory.
 PROJECT_NAME="$(basename "${PROJECT_ROOT}")"
 
+Chaste_UPDATE_PROVENANCE="${Chaste_UPDATE_PROVENANCE:-OFF}"
+
 if [[ -f "${PROJECT_ROOT}/dynamic/config.yaml" ]]; then
 	# Enable pychaste if this project has Python bindings set up.
 	Chaste_ENABLE_PYCHASTE=ON

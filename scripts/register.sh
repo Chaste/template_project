@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Register this project with Chaste.
-# The project is only built if it appears under the Chaste/projects/ directory 
+# The project is only built if it appears under the Chaste/projects/ directory
 # or a symlink there points back here.
 
 # Abort if number of arguments is incorrect.

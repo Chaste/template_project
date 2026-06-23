@@ -189,7 +189,7 @@ def setup(settings: Settings) -> None:
     # Check that the project name is a valid C++ name.
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", settings.PROJECT_NAME):
         print(
-            f"ERROR: the project name '{settings.PROJECT_NAME}' is not a valid C++ name."
+            f"ERROR: the project name '{settings.PROJECT_NAME}' is not a valid C++ name. "
             "Renaming the directory is recommended."
         )
         raise SystemExit(1)
