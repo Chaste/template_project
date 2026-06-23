@@ -29,8 +29,8 @@ fi
 CHASTE_PROJECTS_DIR="${CHASTE_SOURCE_DIR}/projects"
 
 CHASTE_BUILD_DIR="${CHASTE_BUILD_DIR:-${PROJECT_ROOT}/build}"
-if [[ "${CHASTE_BUILD_DIR}" == "${PROJECT_ROOT}" ]]; then
-	echo "Error: CHASTE_BUILD_DIR must not be the project root '${PROJECT_ROOT}'." >&2
+if [[ "${CHASTE_BUILD_DIR}" == "${PROJECT_ROOT}" || "${CHASTE_BUILD_DIR}" == "${CHASTE_SOURCE_DIR}" ]]; then
+	echo "Error: CHASTE_BUILD_DIR must not be the project root or Chaste source directory." >&2
 	echo "Set CHASTE_BUILD_DIR to a separate build directory." >&2
 	exit 1
 fi
