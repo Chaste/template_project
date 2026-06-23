@@ -23,9 +23,4 @@ require_configured
 
 # Build.
 cd "${CHASTE_BUILD_DIR}"
-if [[ "${BUILD_PROJECT_PYTHON_BINDINGS}" == "ON" ]]; then
-	cmake --build . --target pychaste --parallel "${NCORES}"
-	cmake --build . --target "_${PROJECT_NAME}_all" --parallel "${NCORES}"
-else
-	cmake --build . --target "project_${PROJECT_NAME}" --parallel "${NCORES}"
-fi
+cmake --build . --target "project_${PROJECT_NAME}" --parallel "${NCORES}"
