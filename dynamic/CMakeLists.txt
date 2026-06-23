@@ -66,9 +66,11 @@ set(WRAPPER_GENERATION_COMMAND
         --std c++17
 )
 
-# Generate wrappers if not already present
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/wrappers")
-    execute_process(COMMAND ${WRAPPER_GENERATION_COMMAND})
+    execute_process(
+        COMMAND ${WRAPPER_GENERATION_COMMAND}
+        COMMAND_ERROR_IS_FATAL ANY
+    )
 endif()
 
 # Target for manually regenerating wrappers
