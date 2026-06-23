@@ -43,7 +43,15 @@ get_target_property(PROJECT_INCLUDE_DIRS chaste_project_template_project INCLUDE
 # Add VTK 9+ includes
 if(TARGET VTK::CommonCore)
     get_target_property(_include_dirs VTK::CommonCore INTERFACE_INCLUDE_DIRECTORIES)
-    list(APPEND PROJECT_INCLUDE_DIRS ${_include_dirs})
+    foreach(_dir IN LISTS _include_dirs)
+        if(_dir MATCHES "^\\$<BUILD_INTERFACE:(.+)>$")
+            # VTK 9.5+ have $<BUILD_INTERFACE:path> generator expressions in their includes
+            list(APPEND PROJECT_INCLUDE_DIRS "${CMAKE_MATCH_1}")
+        elseif(NOT _dir MATCHES "^\\$<")
+            # VTK 9.0 to 9.4 have plain include paths, no generator expressions
+            list(APPEND PROJECT_INCLUDE_DIRS "${_dir}")
+        endif()
+    endforeach()
 endif()
 
 # Add PETSc4Py includes
@@ -66,6 +74,7 @@ set(WRAPPER_GENERATION_COMMAND
         --std c++17
 )
 
+# Generate wrappers if not already present
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/wrappers")
     execute_process(
         COMMAND ${WRAPPER_GENERATION_COMMAND}
@@ -86,7 +95,7 @@ list(APPEND PROJECT_INCLUDE_DIRS ${_include_dirs})
 ################################
 ####  Build Python module
 ################################
-# Creates a `_template_project_all` shared library from the Python wrappers.
+# Creates a `_template_project_all` library from the Python wrappers.
 # When built, it can be used in Python as `from template_project._template_project_all import *`.
 
 file(GLOB_RECURSE WRAPPER_SOURCES
@@ -94,7 +103,7 @@ file(GLOB_RECURSE WRAPPER_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.hpp
 )
 
-pybind11_add_module(_template_project_all SHARED OPT_SIZE ${WRAPPER_SOURCES})
+pybind11_add_module(_template_project_all OPT_SIZE ${WRAPPER_SOURCES})
 
 target_link_libraries(_template_project_all PRIVATE
     ${Python3_LIBRARIES}
