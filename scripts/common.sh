@@ -86,9 +86,18 @@ require_source() {
 # deletes. For a symlink, only the link itself is removed, not its target.
 safe_rm() {
 	local path="$1"
+	if [[ "${EUID}" -eq 0 ]]; then
+		echo "Error: refusing to remove '${path}' as a privileged user." >&2
+		exit 1
+	fi
 	if [[ -z "${path}" || "${path}" == "/" || "${path}" == "${PROJECT_ROOT}"  || "${path}" == "${CHASTE_SOURCE_DIR}" ]]; then
 		echo "Error: refusing to remove unsafe path '${path}'." >&2
 		exit 1
 	fi
-	rm -rf "${path}"
+	if [[ -t 0 ]]; then
+		# Prompt for confirmation if in an interactive shell.
+		rm -rI "${path}"
+	else
+		rm -rf "${path}"
+	fi
 }
