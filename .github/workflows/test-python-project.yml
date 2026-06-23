@@ -32,7 +32,7 @@ jobs:
 
       - name: Create test project
         run: |
-          cp -r ${{ github.workspace }} ${{ env.PROJECT_DIR }}
+          cp -r . ${{ env.PROJECT_DIR }}
           cd ${{ env.PROJECT_DIR }}
           printf '\n\n\n\n\ny\ny\n' | python3 setup_project.py
 
