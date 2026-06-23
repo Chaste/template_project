@@ -113,35 +113,16 @@ set_target_properties(_template_project_all PROPERTIES
 )
 
 ################################
-####  Copy Python package
+####  Copy Python source
 ################################
 
-# Get list of files in the Python package directory: src/py/
-set(package_file_paths "")
-file(
-    GLOB_RECURSE
-    package_file_paths
-    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/../src/py
+file(GLOB_RECURSE _py_sources
+    CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/*
 )
+list(FILTER _py_sources EXCLUDE REGEX "\\.(dll|dylib|pyc|so)$")
 
-# Exclude compiled files
-list(FILTER package_file_paths EXCLUDE REGEX ".*\\.(dll|dylib|pyc|so)$")
-
-# Copy files to the build directory
-foreach(file_path ${package_file_paths})
-    if(file_path MATCHES ".*\\.(cfg|in|js|py|toml)$")
-        # Copy file and track changes
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/${file_path}
-            ${CMAKE_CURRENT_BINARY_DIR}/package/${file_path}
-            COPYONLY
-        )
-    else()
-        # Copy file, but don't track changes
-        file(
-            COPY ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/${file_path}
-            DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/package/
-        )
-    endif()
+foreach(_src ${_py_sources})
+    file(RELATIVE_PATH _rel ${CMAKE_CURRENT_SOURCE_DIR}/../src/py ${_src})
+    configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/package/${_rel} COPYONLY)
 endforeach()
