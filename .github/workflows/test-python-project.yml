@@ -34,12 +34,11 @@ jobs:
         run: |
           cp -r . ${{ env.PROJECT_DIR }}
           cd ${{ env.PROJECT_DIR }}
+          # Yes to python bindings prompt and final confirmation prompt
           printf '\n\n\n\n\ny\ny\n' | python3 setup_project.py
 
       - name: Configure
         run: |
-          mkdir -p ${{ env.CHASTE_BUILD_DIR }}
-          mkdir -p ${{ env.CHASTE_TEST_OUTPUT }}
           ${{ env.PROJECT_DIR }}/scripts/configure.sh
 
       - name: Compile

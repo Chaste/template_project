@@ -1,0 +1,47 @@
+name: Test Project
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: test-project-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-project:
+    runs-on: ubuntu-latest
+
+    container:
+      image: chaste/develop
+      options: --user root
+
+    env:
+      CHASTE_BUILD_DIR: /tmp/build
+      CHASTE_TEST_OUTPUT: /tmp/testoutput
+      PROJECT_DIR: /tmp/myproject
+
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v7
+
+      - name: Mark Chaste source as safe for git
+        run: git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
+
+      - name: Create test project
+        run: |
+          cp -r . ${{ env.PROJECT_DIR }}
+          cd ${{ env.PROJECT_DIR }}
+          # Use prompt defaults, yes to final confirmation
+          printf '\n\n\n\n\nn\ny\n' | python3 setup_project.py
+
+      - name: Configure
+        run: ${{ env.PROJECT_DIR }}/scripts/configure.sh
+
+      - name: Compile
+        run: ${{ env.PROJECT_DIR }}/scripts/compile.sh
+
+      - name: Test
+        run: ${{ env.PROJECT_DIR }}/scripts/test.sh
