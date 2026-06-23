@@ -6,6 +6,33 @@
 common_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "${common_dir}/.." && pwd)"
 
+# All settings defer to environment variables if they are available.
+# This simplifies working in a chaste docker container where the values are pre-set.
+
+# If the Chaste source directory is not set, try to find it in a few common locations:
+# e.g. at same-level (../Chaste), up from Chaste/projects (../../Chaste),
+# in home (~/Chaste), chaste docker path (/home/chaste/src).
+if [[ -z "${CHASTE_SOURCE_DIR:-}" ]]; then
+	for _candidate in \
+		"${PROJECT_ROOT}/../Chaste" \
+		"${PROJECT_ROOT}/../../Chaste" \
+		"${HOME}/Chaste" \
+		"/home/chaste/src"
+	do
+		if [[ -f "${_candidate}/CMakeLists.txt" ]]; then
+			CHASTE_SOURCE_DIR="$(cd -- "${_candidate}" && pwd)"
+			break
+		fi
+	done
+	if [[ -z "${CHASTE_SOURCE_DIR:-}" ]]; then
+		echo "Error: could not find Chaste source directory." >&2
+		echo "Set CHASTE_SOURCE_DIR to the location of your Chaste source." >&2
+		exit 1
+	fi
+fi
+
+CHASTE_PROJECTS_DIR="${CHASTE_SOURCE_DIR}/projects"
+
 CHASTE_BUILD_DIR="${CHASTE_BUILD_DIR:-${PROJECT_ROOT}/build}"
 if [[ "${CHASTE_BUILD_DIR}" == "${PROJECT_ROOT}" ]]; then
 	echo "Error: CHASTE_BUILD_DIR must not be the project root '${PROJECT_ROOT}'." >&2
@@ -13,11 +40,9 @@ if [[ "${CHASTE_BUILD_DIR}" == "${PROJECT_ROOT}" ]]; then
 	exit 1
 fi
 
-CHASTE_SOURCE_DIR="${CHASTE_SOURCE_DIR:-${PROJECT_ROOT}/../Chaste}"
-CHASTE_PROJECTS_DIR="${CHASTE_SOURCE_DIR}/projects"
-
-CHASTE_TEST_OUTPUT="${CHASTE_TEST_OUTPUT:-${PROJECT_ROOT}/output}"
-export CHASTE_TEST_OUTPUT="${CHASTE_TEST_OUTPUT}"
+if [[ -z "${CHASTE_TEST_OUTPUT:-}" ]]; then
+	export CHASTE_TEST_OUTPUT="${PROJECT_ROOT}/output"
+fi
 
 # The name of this project is the name of the project directory.
 PROJECT_NAME="$(basename "${PROJECT_ROOT}")"
