@@ -45,6 +45,18 @@ source_includes:
   - SmartPointers.hpp
   - Hello.hpp
 
+template_substitutions:
+  - signature: <unsigned DIM>
+    replacement: [[2], [3]]
+  - signature: <unsigned SPACE_DIM>
+    replacement: [[2], [3]]
+  - signature: <unsigned DIM, unsigned DIM>
+    replacement: [[2, 2], [3, 3]]
+  - signature: <unsigned ELEMENT_DIM, unsigned SPACE_DIM>
+    replacement: [[2, 2], [3, 3]]
+  - signature: <unsigned ELEMENT_DIM, unsigned SPACE_DIM=ELEMENT_DIM>
+    replacement: [[2, 2], [3, 3]]
+
 modules:
   - name: all
     source_locations:
