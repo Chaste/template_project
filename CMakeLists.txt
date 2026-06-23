@@ -53,6 +53,6 @@ find_package(Chaste COMPONENTS continuum_mechanics global io linalg mesh ode pde
 # i.e. the name of your project.
 chaste_do_project(template_project)
 
-if(Chaste_ENABLE_PYCHASTE)
+if(Chaste_ENABLE_PYCHASTE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dynamic")
     add_subdirectory(dynamic)
 endif()

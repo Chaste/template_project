@@ -6,12 +6,7 @@
 common_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "${common_dir}/.." && pwd)"
 
-# All settings defer to environment variables if they are available.
-# This simplifies working in a chaste docker container where the values are pre-set.
-
-# If the Chaste source directory is not set, try to find it in a few common locations:
-# e.g. at same-level (../Chaste), up from Chaste/projects (../../Chaste),
-# in home (~/Chaste), chaste docker path (/home/chaste/src).
+# If the Chaste source directory is not set, try to find it in a few common locations.
 if [[ -z "${CHASTE_SOURCE_DIR:-}" ]]; then
 	for _candidate in \
 		"${PROJECT_ROOT}/../Chaste" \
@@ -50,15 +45,15 @@ PROJECT_NAME="$(basename "${PROJECT_ROOT}")"
 if [[ -f "${PROJECT_ROOT}/dynamic/config.yaml" ]]; then
 	# Enable pychaste if this project has Python bindings set up.
 	Chaste_ENABLE_PYCHASTE=ON
+	BUILD_PROJECT_PYTHON_BINDINGS=ON
 else
 	Chaste_ENABLE_PYCHASTE="${Chaste_ENABLE_PYCHASTE:-OFF}"
+	BUILD_PROJECT_PYTHON_BINDINGS=OFF
 fi
 
 # Set the number of parallel jobs for building and testing.
-NCORES="${NCORES:-4}"
-if ! [[ "${NCORES}" =~ ^[0-9]+$ ]] || [[ "${NCORES}" -lt 1 ]]; then
-	echo "Error: NCORES must be a positive integer (got '${NCORES}')." >&2
-	exit 1
+if ! [[ "${NCORES:-}" =~ ^[1-9][0-9]*$ ]]; then
+	NCORES="$(nproc)"
 fi
 
 # Abort with an error if the given command is not on PATH.
