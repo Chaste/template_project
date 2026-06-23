@@ -92,7 +92,7 @@ file(GLOB_RECURSE WRAPPER_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.hpp
 )
 
-pybind11_add_module(_template_project_all SHARED ${WRAPPER_SOURCES})
+pybind11_add_module(_template_project_all SHARED OPT_SIZE ${WRAPPER_SOURCES})
 
 target_link_libraries(_template_project_all PRIVATE
     ${Python3_LIBRARIES}
