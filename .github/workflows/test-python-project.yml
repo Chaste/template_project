@@ -47,7 +47,7 @@ jobs:
 
       - name: Install
         run: |
-          ${{ env.PROJECT_DIR }}/scripts/install.sh
+          ${{ env.PROJECT_DIR }}/scripts/bindings_install.sh
 
       - name: Test Python bindings
         run: |
