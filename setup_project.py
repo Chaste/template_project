@@ -37,6 +37,7 @@ Run this script from the project directory once it has been renamed to your proj
 import os
 import re
 import shutil
+import subprocess
 
 
 class Settings:
@@ -105,6 +106,26 @@ class Settings:
         # Python package template directory (renamed to <project_name>/ during setup).
         self.PYTHON_PKG_TEMPLATE_DIR = os.path.join(self.PROJECT_ROOT, "src", "py", "template_project")
 
+        # SBML support files vendored from chaste-codegen-sbml (kept if SBML opted in, deleted otherwise).
+        # Their names are kept unchanged: generated model code #includes and subclasses them by name.
+        self.SBML_SUPPORT_FILES = [
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlOdeSystem.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlOdeSystem.cpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlSrnModel.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlSrnModel.cpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlCellCycleModel.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlCellCycleModel.cpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "SbmlEventType.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "SbmlMath.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "SbmlMath.cpp"),
+        ]
+
+        # SBML test-helper directory (removed alongside SBML_SUPPORT_FILES if SBML is declined).
+        self.SBML_FORTESTS_DIR = os.path.join(self.PROJECT_ROOT, "src", "fortests")
+
+        # The script that creates the project virtualenv and installs the SBML code generator.
+        self.SBML_INSTALL_SCRIPT = os.path.join(self.PROJECT_ROOT, "scripts", "sbml_install.sh")
+
 
 def find_and_replace(filename: str, old_string: str, new_string: str) -> None:
     """Replace every occurrence of old_string with new_string in a file, in place."""
@@ -159,6 +180,26 @@ def print_banner(*lines: str) -> None:
     print(border)
 
 
+def install_sbml_codegen(settings: Settings) -> None:
+    """Create the project virtualenv and install chaste-codegen-sbml into it.
+
+    Runs scripts/sbml_install.sh. On any failure this is non-fatal: it prints the
+    manual commands so the user can finish the install themselves.
+    """
+    try:
+        subprocess.run([settings.SBML_INSTALL_SCRIPT], check=True)
+    except (subprocess.CalledProcessError, OSError) as error:
+        venv_dir = os.path.join(settings.PROJECT_ROOT, ".virtualenv")
+        print("")
+        print(f"WARNING: could not install chaste-codegen-sbml automatically ({error}).")
+        print("Install it manually with:")
+        print(f"  python3 -m venv {venv_dir}")
+        print(
+            f"  {os.path.join(venv_dir, 'bin', 'pip')} install "
+            "'git+https://github.com/Chaste/chaste-codegen-sbml@develop'"
+        )
+
+
 def is_setup(settings: Settings) -> bool:
     """Return True if the project has already been set up (any of the example files are renamed)."""
     return not all(os.path.exists(file) for file in settings.TEMPLATE_SOURCE_FILES)
@@ -203,12 +244,19 @@ def setup(settings: Settings) -> None:
     # Ask whether to create Python bindings
     python_bindings = ask_for_response("Do you want to create Python bindings for this project?")
 
+    # Ask whether to create an SBML user project
+    sbml = ask_for_response("Do you want to create an SBML user project?")
+    if sbml and "cell_based" not in components:
+        # The SBML base classes subclass cell_based classes, so the component is required.
+        components.append("cell_based")
+
     # Summarise the chosen options and confirm before making any changes
     print("")
     print("Summary:")
     print(f"  Project name:      {settings.PROJECT_NAME}")
     print(f"  Chaste components: {', '.join(components) if components else '(template default)'}")
     print(f"  Python bindings:   {'Yes' if python_bindings else 'No'}")
+    print(f"  SBML project:      {'Yes' if sbml else 'No'}")
     print("")
     if not ask_for_response("Proceed with these settings?"):
         print("No changes made.")
@@ -261,6 +309,16 @@ def setup(settings: Settings) -> None:
         shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "dynamic"))
         shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "src", "py"))
 
+    # Set up or remove SBML support
+    if sbml:
+        # Keep the vendored SBML files (unchanged) and install the code generator into the venv.
+        install_sbml_codegen(settings)
+    else:
+        # Remove the vendored SBML support files and test helpers.
+        for file in settings.SBML_SUPPORT_FILES:
+            os.remove(file)
+        shutil.rmtree(settings.SBML_FORTESTS_DIR)
+
     # Summarise the changes that were made
     print("")
     print("Setup complete.")
@@ -278,6 +336,12 @@ def setup(settings: Settings) -> None:
         print("* Set up Python bindings in dynamic/ and src/py/.")
     else:
         print("* Removed Python bindings template files in dynamic/ and src/py/.")
+
+    if sbml:
+        print("* Kept the SBML base classes in src/ and installed chaste-codegen-sbml into .virtualenv.")
+        print("  See the README and examples/goldbeter_1991/ for how to import an SBML model.")
+    else:
+        print("* Removed the SBML base classes from src/.")
 
 
 def main() -> None:
