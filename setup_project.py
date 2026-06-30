@@ -210,7 +210,7 @@ def setup(settings: Settings) -> None:
     # Abort if the project has already been configured.
     if is_setup(settings):
         print_banner(
-            "ERROR: This Chaste user project has already been setup.",
+            "ERROR: This Chaste user project has already been set up.",
             "If you want to run setup again, use a fresh copy of the template.",
             "",
             "Alternatively, try the steps below to reset this template.",

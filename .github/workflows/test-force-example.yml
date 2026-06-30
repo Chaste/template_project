@@ -1,0 +1,60 @@
+name: Test Force Example
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: test-force-example-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-force-example:
+    runs-on: ubuntu-latest
+
+    container:
+      image: chaste/develop
+      options: --user root
+
+    env:
+      CHASTE_BUILD_DIR: /tmp/build
+      CHASTE_TEST_OUTPUT: /tmp/testoutput
+      PROJECT_DIR: /tmp/myproject
+
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v7
+
+      - name: Mark Chaste source as safe for git
+        run: git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
+
+      - name: Create test project
+        run: |
+          cp -r . ${{ env.PROJECT_DIR }}
+          cd ${{ env.PROJECT_DIR }}
+          # Yes to cell_based component and Python bindings, defaults otherwise, yes to confirm
+          printf '\ny\n\n\n\ny\ny\n' | python3 setup_project.py
+
+      - name: Add MyForce to the project bindings
+        run: |
+          cd ${{ env.PROJECT_DIR }}
+          cp examples/my_force/MyForce.hpp examples/my_force/MyForce.cpp src/
+          sed -i 's/^source_includes:/source_includes:\n  - MyForce.hpp/' dynamic/config.yaml
+          sed -i 's/^    classes:/    classes:\n      - name: MyForce/' dynamic/config.yaml
+          # Import PyChaste's module and declare AbstractForce as an external base
+          # so MyForce can inherit AbstractForce across modules
+          sed -i 's/^  - name: all/  - name: all\n    imports:\n      - chaste._pychaste_all\n    external_bases:\n      - AbstractForce/' dynamic/config.yaml
+
+      - name: Configure
+        run: ${{ env.PROJECT_DIR }}/scripts/configure.sh
+
+      - name: Compile
+        run: ${{ env.PROJECT_DIR }}/scripts/compile.sh
+
+      - name: Install
+        run: ${{ env.PROJECT_DIR }}/scripts/bindings_install.sh
+
+      - name: Run the MyForce simulation from Python
+        run: ${{ env.PROJECT_DIR }}/.virtualenv/bin/python ${{ env.PROJECT_DIR }}/examples/my_force/run_my_force.py
