@@ -37,11 +37,15 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
     - MyForce.hpp
   ```
 
-* add the class under the `all` module's `classes:`
+* under the `all` module, add the class to `classes:`, and tell cppwg that the
+  base class `AbstractForce` is wrapped in PyChaste by importing PyChaste's
+  compiled module under `imports:`
 
   ```yaml
   modules:
     - name: all
+      imports:
+        - chaste._pychaste_all
       source_locations:
         - src/
       classes:
@@ -49,8 +53,18 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
         - name: MyForce
   ```
 
+  The `imports` line is what makes the cross-module inheritance work: `MyForce`
+  subclasses `AbstractForce`, which is wrapped in PyChaste (a different module).
+  cppwg references `AbstractForce` as an external base and imports
+  `chaste._pychaste_all` so that base type is registered before `MyForce`.
+  Without it, `OffLatticeSimulation.AddForce(my_force)` would reject the force
+  because Python would not recognise `MyForce` as an `AbstractForce`.
+
+  > This requires a version of [cppwg](https://github.com/Chaste/cppwg) with
+  > cross-module inheritance support (the `imports` config key).
+
 Because `MyForce` is templated over `<unsigned DIM>`, it is wrapped once per dimension and
-exposed in Python as `MyForce2` (2D) and `MyForce3` (3D).
+exposed in Python as `MyForce_2` (2D) and `MyForce_3` (3D).
 
 ## 3. Compile and install the bindings
 
@@ -81,24 +95,27 @@ import chaste.mesh
 
 chaste.init()
 
-import myproject  # provides MyForce2
+import myproject  # provides MyForce_2
+
+# The cell-cycle models need the simulation clock to exist before cells are created.
+chaste.cell_based.SimulationTime.Instance().SetStartTime(0.0)
 
 # Build a small node-based cell population.
 generator = chaste.mesh.HoneycombMeshGenerator(5, 5)
-mesh = chaste.mesh.NodesOnlyMesh2()
+mesh = chaste.mesh.NodesOnlyMesh_2()
 mesh.ConstructNodesWithoutMesh(generator.GetMesh(), 1.5)
 
 transit_type = chaste.cell_based.TransitCellProliferativeType()
-cell_generator = chaste.cell_based.CellsGeneratorUniformCellCycleModel_2()
+cell_generator = chaste.cell_based.CellsGenerator["UniformCellCycleModel", "2"]()
 cells = cell_generator.GenerateBasicRandom(mesh.GetNumNodes(), transit_type)
-cell_population = chaste.cell_based.NodeBasedCellPopulation2(mesh, cells)
+cell_population = chaste.cell_based.NodeBasedCellPopulation_2(mesh, cells)
 
 # Run an off-lattice simulation using a standard force and our custom force.
-simulator = chaste.cell_based.OffLatticeSimulation2_2(cell_population)
+simulator = chaste.cell_based.OffLatticeSimulation_2_2(cell_population)
 simulator.SetOutputDirectory("Python/MyForce")
 simulator.SetEndTime(1.0)
-simulator.AddForce(chaste.cell_based.GeneralisedLinearSpringForce2_2())
-simulator.AddForce(myproject.MyForce2(1.0))  # <-- our new force, from C++
+simulator.AddForce(chaste.cell_based.GeneralisedLinearSpringForce_2_2())
+simulator.AddForce(myproject.MyForce_2(1.0))  # <-- our new force, from C++
 simulator.Solve()
 ```
 
@@ -112,7 +129,7 @@ You should see the simulation run to completion and print the number of cells. T
 force pushes the whole population in the x-direction over the course of the simulation,
 confirming that your new C++ class is callable from Python.
 
-> If `myproject.MyForce2` is not found, list the generated names with
+> If `myproject.MyForce_2` is not found, list the generated names with
 > `print([n for n in dir(myproject) if "MyForce" in n])` — the dimension suffix depends on
 > how the class is templated (see the note in the top-level README).
 

@@ -73,12 +73,26 @@ To expose a new class, add it to `src/`, then list it in `dynamic/config.yaml`:
 
 Then recompile (`scripts/compile.sh`) and reinstall (`scripts/bindings_install.sh`).
 
+If your class inherits from a Chaste class that is wrapped in PyChaste (for example a
+custom `AbstractForce` subclass), also import PyChaste's compiled module under the `all`
+module's `imports:` so cppwg can link the inheritance across modules:
+
+```yaml
+modules:
+  - name: all
+    imports:
+      - chaste._pychaste_all
+    classes:
+      - name: YourClass
+```
+
 > **Class names for templated classes.** A templated class is wrapped once per
-> dimension, with the dimensions appended to the name. For example a class templated over
-> `<unsigned DIM>` becomes `YourClass2` / `YourClass3`, and one templated over
-> `<ELEMENT_DIM, SPACE_DIM>` becomes `YourClass2_2` / `YourClass3_3` (matching PyChaste's
-> own `OffLatticeSimulation2_2`, `GeneralisedLinearSpringForce2_2`, etc.). If you are
-> unsure of a generated name, run `print([n for n in dir(myproject) if "YourClass" in n])`.
+> dimension, with the dimensions appended after an underscore. For example a class
+> templated over `<unsigned DIM>` becomes `YourClass_2` / `YourClass_3`, and one templated
+> over `<ELEMENT_DIM, SPACE_DIM>` becomes `YourClass_2_2` / `YourClass_3_3`. (PyChaste's own
+> classes additionally expose no-underscore aliases such as `OffLatticeSimulation2_2`.) If
+> you are unsure of a generated name, run
+> `print([n for n in dir(myproject) if "YourClass" in n])`.
 
 See [examples/my_force/README.md](examples/my_force/README.md) for a full walkthrough of
 this process.
