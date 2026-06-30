@@ -19,10 +19,19 @@ Run every command below from your project's root directory.
 source .virtualenv/bin/activate
 ```
 
-## 2. Download the SBML model and give it a clean name
+## 2. Get the SBML model with a clean name
 
-The generated C++ class names come from the **file name**, so download the model and
-rename it to something C++-friendly. Here we use `Goldbeter1991`:
+The generated C++ class names come from the **file name**, so the model needs a
+C++-friendly name. Here we use `Goldbeter1991`.
+
+A copy of the model is included next to this walkthrough, so just copy it in:
+
+```sh
+cp examples/goldbeter_1991/Goldbeter1991.xml .
+```
+
+Alternatively, download it from BioModels and rename it yourself (this needs network
+access to `www.ebi.ac.uk`):
 
 ```sh
 curl -L "https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000003?filename=BIOMD0000000003_url.xml" -o Goldbeter1991.xml

@@ -46,8 +46,9 @@ jobs:
       - name: Import the Goldbeter 1991 model
         run: |
           cd ${{ env.PROJECT_DIR }}
-          curl -L "https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000003?filename=BIOMD0000000003_url.xml" \
-            -o Goldbeter1991.xml
+          # Use the vendored model (examples/goldbeter_1991/Goldbeter1991.xml) so the
+          # job does not depend on reaching BioModels at run time.
+          cp examples/goldbeter_1991/Goldbeter1991.xml .
           .virtualenv/bin/chaste_codegen_sbml Goldbeter1991.xml --model-type srn --output-dir src/
           cp examples/goldbeter_1991/TestGoldbeter1991SbmlSrnModel.hpp test/
           echo "TestGoldbeter1991SbmlSrnModel.hpp" >> test/ContinuousTestPack.txt
