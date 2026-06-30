@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: chaste/develop
+      image: chaste/base
       options: --user root
 
     env:
@@ -27,8 +27,10 @@ jobs:
       - name: Checkout template
         uses: actions/checkout@v7
 
-      - name: Mark Chaste source as safe for git
-        run: git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
+      - name: Checkout Chaste source
+        run: |
+          git clone --depth 1 --branch develop https://github.com/Chaste/Chaste.git "${CHASTE_SOURCE_DIR}"
+          git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
 
       - name: Install clang-format and curl
         run: apt-get update && apt-get install -y clang-format curl

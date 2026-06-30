@@ -67,10 +67,11 @@ active cyclin protease (`X`).
 
 #include "AbstractCellBasedTestSuite.hpp"
 #include "Cell.hpp"
-#include "NoCellCycleModel.hpp"
+#include "CellPropertyRegistry.hpp"
+#include "FixedG1GenerationalCellCycleModel.hpp"
 #include "SimulationTime.hpp"
 #include "SmartPointers.hpp"
-#include "StemCellProliferativeType.hpp"
+#include "TransitCellProliferativeType.hpp"
 #include "WildTypeCellMutationState.hpp"
 
 // The header generated from Goldbeter1991.xml in step 3.
@@ -84,33 +85,43 @@ class TestGoldbeter1991SbmlSrnModel : public AbstractCellBasedTestSuite
 public:
     void TestSteadyStateSimulation()
     {
-        // Integrate to t = 1000 in 1000 steps (AbstractCellBasedTestSuite has set the start time to 0).
+        // Run until t = 100 with dt = 0.001, by which time the mitotic oscillator
+        // has settled to the reference steady state.
         SimulationTime* p_simulation_time = SimulationTime::Instance();
-        p_simulation_time->SetEndTimeAndNumberOfTimeSteps(1000.0, 1000);
+        double end_time = 100;
+        double dt = 0.001;
+        unsigned num_steps = (unsigned)(end_time / dt);
+        p_simulation_time->SetEndTimeAndNumberOfTimeSteps(end_time, num_steps + 1);
 
-        // Create the SRN model from the imported SBML model and attach it to a cell.
+        // Create a cell carrying the imported SRN model.
+        boost::shared_ptr<AbstractCellProperty> p_healthy_state(
+            CellPropertyRegistry::Instance()->Get<WildTypeCellMutationState>());
+        boost::shared_ptr<AbstractCellProperty> p_transit_type(
+            CellPropertyRegistry::Instance()->Get<TransitCellProliferativeType>());
+
+        FixedG1GenerationalCellCycleModel* p_cell_model = new FixedG1GenerationalCellCycleModel();
         Goldbeter1991SbmlSrnModel* p_srn_model = new Goldbeter1991SbmlSrnModel();
 
-        MAKE_PTR(WildTypeCellMutationState, p_state);
-        MAKE_PTR(StemCellProliferativeType, p_stem_type);
-        NoCellCycleModel* p_cc_model = new NoCellCycleModel();
-
-        CellPtr p_cell(new Cell(p_state, p_cc_model, p_srn_model));
-        p_cell->SetCellProliferativeType(p_stem_type);
+        CellPtr p_cell(new Cell(p_healthy_state, p_cell_model, p_srn_model, false, CellPropertyCollection()));
+        p_cell->SetCellProliferativeType(p_transit_type);
         p_cell->InitialiseCellCycleModel();
         p_cell->InitialiseSrnModel();
 
-        // Step the simulation to the end time, advancing the SRN model each step.
+        // Step the simulation to the end time.
         while (!p_simulation_time->IsFinished())
         {
             p_simulation_time->IncrementTimeOneStep();
-            p_srn_model->SimulateToCurrentTime();
+            if (p_cell->ReadyToDivide())
+            {
+                p_cell->Divide();
+            }
         }
 
         // Check the steady state of the mitotic oscillator.
-        TS_ASSERT_DELTA(p_srn_model->GetStateVariable("C"), 0.5470, 1e-2);
-        TS_ASSERT_DELTA(p_srn_model->GetStateVariable("M"), 0.2936, 1e-2);
-        TS_ASSERT_DELTA(p_srn_model->GetStateVariable("X"), 0.0067, 1e-3);
+        Goldbeter1991SbmlSrnModel* p_srn = dynamic_cast<Goldbeter1991SbmlSrnModel*>(p_cell->GetSrnModel());
+        TS_ASSERT_DELTA(p_srn->GetStateVariable("C"), 0.5470, 1e-2);
+        TS_ASSERT_DELTA(p_srn->GetStateVariable("M"), 0.2936, 1e-2);
+        TS_ASSERT_DELTA(p_srn->GetStateVariable("X"), 0.0067, 1e-3);
     }
 };
 
