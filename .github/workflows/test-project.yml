@@ -34,8 +34,8 @@ jobs:
         run: |
           cp -r . ${{ env.PROJECT_DIR }}
           cd ${{ env.PROJECT_DIR }}
-          # Use prompt defaults, yes to final confirmation
-          printf '\n\n\n\n\nn\ny\n' | python3 setup_project.py
+          # Prompt defaults (no components, no Python bindings, no SBML), yes to confirm
+          printf '\n\n\n\n\nn\nn\ny\n' | python3 setup_project.py
 
       - name: Configure
         run: ${{ env.PROJECT_DIR }}/scripts/configure.sh

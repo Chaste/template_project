@@ -30,8 +30,8 @@ jobs:
       - name: Mark Chaste source as safe for git
         run: git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
 
-      - name: Install clang-format
-        run: apt-get update && apt-get install -y clang-format
+      - name: Install clang-format and curl
+        run: apt-get update && apt-get install -y clang-format curl
 
       - name: Create test project
         run: |
