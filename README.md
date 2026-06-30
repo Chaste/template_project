@@ -74,14 +74,17 @@ To expose a new class, add it to `src/`, then list it in `dynamic/config.yaml`:
 Then recompile (`scripts/compile.sh`) and reinstall (`scripts/bindings_install.sh`).
 
 If your class inherits from a Chaste class that is wrapped in PyChaste (for example a
-custom `AbstractForce` subclass), also import PyChaste's compiled module under the `all`
-module's `imports:` so cppwg can link the inheritance across modules:
+custom `AbstractForce` subclass), import PyChaste's compiled module under the `all`
+module's `imports:` and name the base class under `external_bases:` so cppwg can link the
+inheritance across modules:
 
 ```yaml
 modules:
   - name: all
     imports:
       - chaste._pychaste_all
+    external_bases:
+      - AbstractForce
     classes:
       - name: YourClass
 ```

@@ -38,14 +38,16 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
   ```
 
 * under the `all` module, add the class to `classes:`, and tell cppwg that the
-  base class `AbstractForce` is wrapped in PyChaste by importing PyChaste's
-  compiled module under `imports:`
+  base class `AbstractForce` is wrapped in PyChaste: import PyChaste's compiled
+  module under `imports:` and list the base class under `external_bases:`
 
   ```yaml
   modules:
     - name: all
       imports:
         - chaste._pychaste_all
+      external_bases:
+        - AbstractForce
       source_locations:
         - src/
       classes:
@@ -53,15 +55,17 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
         - name: MyForce
   ```
 
-  The `imports` line is what makes the cross-module inheritance work: `MyForce`
-  subclasses `AbstractForce`, which is wrapped in PyChaste (a different module).
-  cppwg references `AbstractForce` as an external base and imports
+  This is what makes the cross-module inheritance work: `MyForce` subclasses
+  `AbstractForce`, which is wrapped in PyChaste (a different package). Listing
+  `AbstractForce` under `external_bases` tells cppwg it is registered there, so
+  cppwg references it as the base of `MyForce`; `imports` then imports
   `chaste._pychaste_all` so that base type is registered before `MyForce`.
-  Without it, `OffLatticeSimulation.AddForce(my_force)` would reject the force
+  Without this, `OffLatticeSimulation.AddForce(my_force)` would reject the force
   because Python would not recognise `MyForce` as an `AbstractForce`.
 
   > This requires a version of [cppwg](https://github.com/Chaste/cppwg) with
-  > cross-module inheritance support (the `imports` config key).
+  > cross-module inheritance support (the `imports` and `external_bases` config
+  > keys).
 
 Because `MyForce` is templated over `<unsigned DIM>`, it is wrapped once per dimension and
 exposed in Python as `MyForce_2` (2D) and `MyForce_3` (3D).
