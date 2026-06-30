@@ -114,7 +114,9 @@ target_link_libraries(_template_project_all PRIVATE
 
 target_include_directories(_template_project_all PRIVATE ${PROJECT_INCLUDE_DIRS})
 
-target_compile_options(_template_project_all PRIVATE -flto=auto -Wno-unused-local-typedefs)
+target_compile_options(_template_project_all PRIVATE -Wno-unused-local-typedefs)
+
+set_target_properties(_template_project_all PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
 
 add_dependencies(_template_project_all pychaste)
 add_dependencies(project_template_project _template_project_all)
