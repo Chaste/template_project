@@ -33,7 +33,7 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
   ```yaml
   source_includes:
     - SmartPointers.hpp
-    - Hello.hpp
+    - Hello_ProjectName.hpp
     - MyForce.hpp
   ```
 
@@ -51,7 +51,7 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
       source_locations:
         - src/
       classes:
-        - name: Hello
+        - name: Hello_ProjectName
         - name: MyForce
   ```
 
