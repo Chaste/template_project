@@ -6,7 +6,13 @@
 common_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "${common_dir}/.." && pwd)"
 
+# The project virtualenv, shared by the Python bindings and SBML install scripts.
+# Keep this path in sync with VENV_DIR in setup_project.py, which defines it independently.
+VENV_DIR="${PROJECT_ROOT}/.virtualenv"
+
 # If the Chaste source directory is not set, try to find it in a few common locations.
+# It is left empty if not found: sourcing this file must not require Chaste (create_venv.sh
+# uses it before the build is set up). Scripts that need it call require_source to enforce it.
 if [[ -z "${CHASTE_SOURCE_DIR:-}" ]]; then
 	for _candidate in \
 		"${PROJECT_ROOT}/../Chaste" \
@@ -19,12 +25,8 @@ if [[ -z "${CHASTE_SOURCE_DIR:-}" ]]; then
 			break
 		fi
 	done
-	if [[ -z "${CHASTE_SOURCE_DIR:-}" ]]; then
-		echo "Error: could not find Chaste source directory." >&2
-		echo "Set CHASTE_SOURCE_DIR to the location of your Chaste source." >&2
-		exit 1
-	fi
 fi
+CHASTE_SOURCE_DIR="${CHASTE_SOURCE_DIR:-}"
 
 CHASTE_PROJECTS_DIR="${CHASTE_SOURCE_DIR}/projects"
 
@@ -53,9 +55,9 @@ else
 	BUILD_PROJECT_PYTHON_BINDINGS=OFF
 fi
 
-# Set the number of parallel jobs for building and testing.
+# Set the number of parallel jobs for building and testing
 if ! [[ "${NCORES:-}" =~ ^[1-9][0-9]*$ ]]; then
-	NCORES="$(nproc)"
+	NCORES="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)"
 fi
 
 # Abort with an error if the given command is not on PATH.

@@ -9,17 +9,9 @@ if [[ $# -ne 0 ]]; then
 	exit 1
 fi
 
-# The project root is the parent of this script's directory.
+# Import common variables and helpers.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd -- "${script_dir}/.." && pwd)"
-
-# Abort with an error if the given command is not on PATH.
-require_command() {
-	if ! command -v "$1" >/dev/null 2>&1; then
-		echo "Error: $1 is not available on PATH." >&2
-		exit 1
-	fi
-}
+source "${script_dir}/common.sh"
 
 require_command python3
 
@@ -28,15 +20,16 @@ if ! command -v clang-format >/dev/null 2>&1; then
 	echo "Warning: clang-format is not on PATH; chaste_codegen_sbml needs it to format generated code." >&2
 fi
 
-# Create the project virtualenv (idempotent; shared with Python bindings if both are set up).
-venv_dir="${PROJECT_ROOT}/.virtualenv"
-python3 -m venv "${venv_dir}"
+# Create the project virtualenv if it does not already exist (shared with the Python
+# bindings, hence --system-site-packages inside create_venv.sh so it never hides PyChaste's
+# native packages when a project has both SBML and Python bindings).
+"${common_dir}/create_venv.sh"
 
 # Install the SBML code generator from GitHub.
-"${venv_dir}/bin/pip" install --upgrade pip
-"${venv_dir}/bin/pip" install "git+https://github.com/Chaste/chaste-codegen-sbml@develop"
+"${VENV_DIR}/bin/pip" install --upgrade pip
+"${VENV_DIR}/bin/pip" install "git+https://github.com/Chaste/chaste-codegen-sbml@develop"
 
 echo ""
-echo "Installed chaste-codegen-sbml into '${venv_dir}'."
-echo "Activate the virtualenv with: source '${venv_dir}/bin/activate'"
+echo "Installed chaste-codegen-sbml into '${VENV_DIR}'."
+echo "Activate the virtualenv with: source '${VENV_DIR}/bin/activate'"
 echo "Then convert an SBML model with: chaste_codegen_sbml --help"
