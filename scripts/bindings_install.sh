@@ -37,18 +37,16 @@ if [[ ! -d "${pychaste_pkg}" ]]; then
 	exit 1
 fi
 
-# Create the virtualenv if it does not already exist.
-# Use --system-site-packages so the venv can see PyChaste's native runtime
-# dependencies (petsc4py, mpi4py, vtk), which are provided by the system Python
-# and are not pip-installable here.
-venv_dir="${PROJECT_ROOT}/.virtualenv"
-python3 -m venv --system-site-packages "${venv_dir}"
+# Create the virtualenv (with --system-site-packages) if it does not already exist, so it
+# can see PyChaste's native runtime dependencies (petsc4py, mpi4py, vtk) from the system
+# Python. These are not pip-installable here.
+"${common_dir}/create_venv.sh"
 
 # Install pychaste first (it is a dependency of the project bindings).
-"${venv_dir}/bin/pip" install "${pychaste_pkg}"
+"${VENV_DIR}/bin/pip" install "${pychaste_pkg}"
 
 # Install the project Python bindings.
-"${venv_dir}/bin/pip" install "${project_pkg}"
+"${VENV_DIR}/bin/pip" install "${project_pkg}"
 
-echo "Installed Python bindings to '${venv_dir}'."
-echo "Activate with: source '${venv_dir}/bin/activate'"
+echo "Installed Python bindings to '${VENV_DIR}'."
+echo "Activate with: source '${VENV_DIR}/bin/activate'"

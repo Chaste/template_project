@@ -106,6 +106,31 @@ class Settings:
         # Python package template directory (renamed to <project_name>/ during setup).
         self.PYTHON_PKG_TEMPLATE_DIR = os.path.join(self.PROJECT_ROOT, "src", "py", "template_project")
 
+        # The project virtualenv and the script that creates it (shared by the bindings and SBML paths).
+        # Keep VENV_DIR in sync with VENV_DIR in scripts/common.sh, which defines it independently.
+        self.VENV_DIR = os.path.join(self.PROJECT_ROOT, ".virtualenv")
+        self.CREATE_VENV_SCRIPT = os.path.join(self.PROJECT_ROOT, "scripts", "create_venv.sh")
+
+        # SBML support files vendored from chaste-codegen-sbml (kept if SBML opted in, deleted otherwise).
+        # Their names are kept unchanged: generated model code #includes and subclasses them by name.
+        self.SBML_SUPPORT_FILES = [
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlOdeSystem.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlOdeSystem.cpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlSrnModel.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlSrnModel.cpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlCellCycleModel.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "AbstractSbmlCellCycleModel.cpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "SbmlEventType.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "SbmlMath.hpp"),
+            os.path.join(self.PROJECT_ROOT, "src", "SbmlMath.cpp"),
+        ]
+
+        # SBML test-helper directory (removed alongside SBML_SUPPORT_FILES if SBML is declined).
+        self.SBML_FORTESTS_DIR = os.path.join(self.PROJECT_ROOT, "src", "fortests")
+
+        # The script that creates the project virtualenv and installs the SBML code generator.
+        self.SBML_INSTALL_SCRIPT = os.path.join(self.PROJECT_ROOT, "scripts", "sbml_install.sh")
+
 
 def find_and_replace(filename: str, old_string: str, new_string: str) -> None:
     """Replace every occurrence of old_string with new_string in a file, in place."""
@@ -160,29 +185,31 @@ def print_banner(*lines: str) -> None:
     print(border)
 
 
-def create_virtualenv(settings: Settings) -> None:
-    """Create the project virtualenv for the Python bindings.
+def create_virtualenv(settings: Settings) -> bool:
+    """Create the project virtualenv, shared by the Python bindings and SBML paths.
 
-    Creates .virtualenv/ with --system-site-packages so it can see PyChaste's native
-    runtime dependencies (petsc4py, mpi4py, vtk) provided by the system Python. On any
-    failure this is non-fatal: it prints the manual command so the user can create it
-    themselves. The compiled bindings are installed into this virtualenv later by
-    scripts/bindings_install.sh, once the project has been built.
+    Runs scripts/create_venv.sh, which creates .virtualenv/ with --system-site-packages so
+    it can see native pip packages provided by the system Python (e.g. petsc4py, mpi4py and vtk ).
     """
-    venv_dir = os.path.join(settings.PROJECT_ROOT, ".virtualenv")
     try:
-        subprocess.run(["python3", "-m", "venv", "--system-site-packages", venv_dir], check=True)
+        subprocess.run([settings.CREATE_VENV_SCRIPT], check=True)
     except (subprocess.CalledProcessError, OSError) as error:
         print("")
         print(f"WARNING: could not create the project virtualenv automatically ({error}).")
         print("Create it manually with:")
-        print(f"  python3 -m venv --system-site-packages {venv_dir}")
-        return
+        print(f"  python3 -m venv --system-site-packages {settings.VENV_DIR}")
+        return False
+    return True
 
-    # Warn (non-fatal) if PyChaste's native runtime dependencies are not visible to the
-    # venv. They are provided by the system Python (e.g. in the chaste/base Docker image),
-    # not pip-installed; the bindings will fail to import at runtime without them.
-    venv_python = os.path.join(venv_dir, "bin", "python")
+
+def warn_missing_pychaste_deps(settings: Settings) -> None:
+    """Warn (non-fatal) if PyChaste's native runtime dependencies are not visible.
+
+    petsc4py, mpi4py and vtk are provided by the system Python (e.g. in the chaste/base
+    Docker image), not pip-installed; the bindings will fail to import at runtime without
+    them. Only relevant to the Python bindings, so it is not run for the SBML path.
+    """
+    venv_python = os.path.join(settings.VENV_DIR, "bin", "python")
     missing = [
         module
         for module in ("petsc4py", "mpi4py", "vtk")
@@ -193,6 +220,27 @@ def create_virtualenv(settings: Settings) -> None:
         print(f"WARNING: PyChaste runtime dependencies not found: {', '.join(missing)}.")
         print("These are provided by the system Python (e.g. in the chaste/base image) and are")
         print("needed to import the bindings. Install them on your system before using the bindings.")
+
+
+def install_sbml_codegen(settings: Settings) -> None:
+    """Create the project virtualenv and install chaste-codegen-sbml into it.
+
+    Creates the shared virtualenv via create_virtualenv(), then runs scripts/sbml_install.sh
+    to install the code generator. On any failure this is non-fatal: it prints the manual
+    commands so the user can finish the install themselves.
+    """
+    if not create_virtualenv(settings):
+        return
+    try:
+        subprocess.run([settings.SBML_INSTALL_SCRIPT], check=True)
+    except (subprocess.CalledProcessError, OSError) as error:
+        print("")
+        print(f"WARNING: could not install chaste-codegen-sbml automatically ({error}).")
+        print("Install it manually with:")
+        print(
+            f"  {os.path.join(settings.VENV_DIR, 'bin', 'pip')} install "
+            "'git+https://github.com/Chaste/chaste-codegen-sbml@develop'"
+        )
 
 
 def is_setup(settings: Settings) -> bool:
@@ -239,12 +287,19 @@ def setup(settings: Settings) -> None:
     # Ask whether to create Python bindings
     python_bindings = ask_for_response("Do you want to create Python bindings for this project?")
 
+    # Ask whether to create an SBML user project
+    sbml = ask_for_response("Do you want to create an SBML user project?")
+    if sbml and "cell_based" not in components:
+        # The SBML base classes subclass cell_based classes, so the component is required.
+        components.append("cell_based")
+
     # Summarise the chosen options and confirm before making any changes
     print("")
     print("Summary:")
     print(f"  Project name:      {settings.PROJECT_NAME}")
     print(f"  Chaste components: {', '.join(components) if components else '(template default)'}")
     print(f"  Python bindings:   {'Yes' if python_bindings else 'No'}")
+    print(f"  SBML project:      {'Yes' if sbml else 'No'}")
     print("")
     if not ask_for_response("Proceed with these settings?"):
         print("No changes made.")
@@ -294,11 +349,22 @@ def setup(settings: Settings) -> None:
         os.rename(settings.PYTHON_PKG_TEMPLATE_DIR, new_pkg_dir)
         # Create the project virtualenv (the compiled bindings are installed later
         # by scripts/bindings_install.sh).
-        create_virtualenv(settings)
+        if create_virtualenv(settings):
+            warn_missing_pychaste_deps(settings)
     else:
         # Remove the Python binding template files
         shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "dynamic"))
         shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "src", "py"))
+
+    # Set up or remove SBML support
+    if sbml:
+        # Keep the vendored SBML files (unchanged) and install the code generator into the venv.
+        install_sbml_codegen(settings)
+    else:
+        # Remove the vendored SBML support files and test helpers.
+        for file in settings.SBML_SUPPORT_FILES:
+            os.remove(file)
+        shutil.rmtree(settings.SBML_FORTESTS_DIR)
 
     # Summarise the changes that were made
     print("")
@@ -318,6 +384,12 @@ def setup(settings: Settings) -> None:
         print("* Created the project virtualenv in .virtualenv/.")
     else:
         print("* Removed Python bindings template files in dynamic/ and src/py/.")
+
+    if sbml:
+        print("* Kept the SBML base classes in src/ and installed chaste-codegen-sbml into .virtualenv.")
+        print("  See the README and examples/goldbeter_1991/ for how to import an SBML model.")
+    else:
+        print("* Removed the SBML base classes from src/.")
 
 
 def main() -> None:

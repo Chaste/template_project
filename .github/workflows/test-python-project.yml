@@ -36,8 +36,8 @@ jobs:
         run: |
           cp -r . ${{ env.PROJECT_DIR }}
           cd ${{ env.PROJECT_DIR }}
-          # Yes to python bindings prompt and final confirmation prompt
-          printf '\n\n\n\n\ny\ny\n' | python3 setup_project.py
+          # Yes to Python bindings, no to SBML, yes to final confirmation
+          printf '\n\n\n\n\ny\nn\ny\n' | python3 setup_project.py
 
       - name: Configure
         run: |

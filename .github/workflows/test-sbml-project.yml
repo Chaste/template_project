@@ -1,0 +1,65 @@
+name: Test SBML Project
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: test-sbml-project-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-sbml-project:
+    runs-on: ubuntu-latest
+
+    container:
+      image: chaste/base
+      options: --user root
+
+    env:
+      CHASTE_BUILD_DIR: /tmp/build
+      CHASTE_TEST_OUTPUT: /tmp/testoutput
+      PROJECT_DIR: /tmp/myproject
+
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v7
+
+      - name: Checkout Chaste source
+        run: |
+          git clone --depth 1 --branch develop https://github.com/Chaste/Chaste.git "${CHASTE_SOURCE_DIR}"
+          git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
+
+      - name: Install clang-format and curl
+        run: apt-get update && apt-get install -y clang-format curl
+
+      - name: Create test project
+        run: |
+          cp -r . ${{ env.PROJECT_DIR }}
+          cd ${{ env.PROJECT_DIR }}
+          # Prompt defaults for proceed/components/no-python-bindings, yes to SBML, yes to confirm
+          printf '\n\n\n\n\n\ny\ny\n' | python3 setup_project.py
+
+      - name: Install SBML code generator
+        run: ${{ env.PROJECT_DIR }}/scripts/sbml_install.sh
+
+      - name: Import the Goldbeter 1991 model
+        run: |
+          cd ${{ env.PROJECT_DIR }}
+          # Use the vendored model (examples/goldbeter_1991/Goldbeter1991.xml) so the
+          # job does not depend on reaching BioModels at run time.
+          cp examples/goldbeter_1991/Goldbeter1991.xml .
+          .virtualenv/bin/chaste_codegen_sbml Goldbeter1991.xml --model-type srn --output-dir src/
+          cp examples/goldbeter_1991/TestGoldbeter1991SbmlSrnModel.hpp test/
+          echo "TestGoldbeter1991SbmlSrnModel.hpp" >> test/ContinuousTestPack.txt
+
+      - name: Configure
+        run: ${{ env.PROJECT_DIR }}/scripts/configure.sh
+
+      - name: Compile
+        run: ${{ env.PROJECT_DIR }}/scripts/compile.sh
+
+      - name: Test
+        run: ${{ env.PROJECT_DIR }}/scripts/test.sh
