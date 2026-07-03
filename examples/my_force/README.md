@@ -5,7 +5,7 @@ project's Python bindings, and then uses it in a [PyChaste](https://chaste.githu
 simulation driven from Python.
 
 It assumes you have already created your project from this template and answered **yes** to
-the Python bindings prompt in `setup_project.py`, so that `dynamic/config.yaml`,
+the Python bindings prompt and **yes** to the cell-based prompt in `setup_project.py`, so that `dynamic/config.yaml`,
 `dynamic/CMakeLists.txt` and `src/py/` are present.
 
 Run every command below from your project's root directory, and replace `myproject` with
@@ -33,27 +33,27 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
   ```yaml
   source_includes:
     - SmartPointers.hpp
-    - Hello.hpp
+    - Hello_ProjectName.hpp
     - MyForce.hpp
   ```
 
-* under the `all` module, add the class to `classes:`, and tell cppwg that the
-  base class `AbstractForce` is wrapped in PyChaste: import PyChaste's compiled
-  module under `imports:` and list the base class under `external_bases:`
+* under the `all` module, add the `MyForce` to `classes:`, then tell cppwg that
+  `AbstractForce` is wrapped in PyChaste by adding the `chaste._pychaste_all`
+  module under `imports:` and listing `AbstractForce` under `external_bases:`
 
   ```yaml
   modules:
     - name: all
-      imports:
-        - chaste._pychaste_all
-      external_bases:
-        - AbstractForce
+      imports: #<-- new
+        - chaste._pychaste_all #<-- new
+      external_bases: #<-- new
+        - AbstractForce #<-- new
       source_locations:
         - src/
       classes:
-        - name: Hello
-        - name: MyForce
-  ```
+        - name: Hello_ProjectName
+        - name: MyForce #<-- new
+```
 
   This is what makes the cross-module inheritance work: `MyForce` subclasses
   `AbstractForce`, which is wrapped in PyChaste (a different package). Listing
@@ -63,12 +63,11 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
   Without this, `OffLatticeSimulation.AddForce(my_force)` would reject the force
   because Python would not recognise `MyForce` as an `AbstractForce`.
 
-  > This requires a version of [cppwg](https://github.com/Chaste/cppwg) with
-  > cross-module inheritance support (the `imports` and `external_bases` config
-  > keys).
+  > Use the latest version of [cppwg](https://github.com/Chaste/cppwg) to
+  > ensure it has cross-module inheritance support.
 
-Because `MyForce` is templated over `<unsigned DIM>`, it is wrapped once per dimension and
-exposed in Python as `MyForce_2` (2D) and `MyForce_3` (3D).
+Because `MyForce` is templated over `<unsigned DIM>`, it is wrapped once per
+dimension and exposed in Python as `MyForce_2` (2D) and `MyForce_3` (3D).
 
 ## 3. Compile and install the bindings
 
@@ -136,6 +135,9 @@ confirming that your new C++ class is callable from Python.
 > If `myproject.MyForce_2` is not found, list the generated names with
 > `print([n for n in dir(myproject) if "MyForce" in n])` — the dimension suffix depends on
 > how the class is templated (see the note in the top-level README).
+
+## Troubleshooting
+See the main [README](../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.
 
 ## Next steps
 

@@ -80,6 +80,22 @@ your project from Python. For a complete, worked example — writing a new C++ `
 using it in a Python simulation — see
 [examples/my_force/README.md](examples/my_force/README.md).
 
+### Prerequisites
+
+Building and installing the bindings needs, in addition to a Chaste source tree:
+
+* [cppwg](https://github.com/Chaste/cppwg) (with cross-module inheritance support — the
+  `imports` and `external_bases` config keys), used at configure time to generate the
+  wrappers, and
+* PyChaste's native runtime dependencies — `petsc4py`, `mpi4py` and `vtk` — importable from
+  the Python interpreter used to run your bindings.
+
+The latest [`chaste/base`](https://hub.docker.com/r/chaste/base) Docker image already provides all
+of these, and `scripts/bindings_install.sh` creates the project virtualenv with
+`--system-site-packages` so it can see them. Pull the latest image with `docker pull chaste/base`. If you are **not** working inside that image,
+`pip install` these dependencies into the system Python (or the project virtualenv) yourself
+before running configuration: `petsc4py`, `mpi4py`, and `vtk`, which all build against the versions of PETSc, MPI, and VTK on your system.
+
 ### 1. Enable Python bindings
 
 When you run `setup_project.py`, answer **yes** to:
@@ -163,3 +179,31 @@ modules:
 
 See [examples/my_force/README.md](examples/my_force/README.md) for a full walkthrough of
 this process.
+
+### Troubleshooting the bindings
+
+**Wrapper generation fails during `scripts/configure.sh`.** cppwg runs at configure time, so
+an error in `dynamic/config.yaml` (a misspelt class, a missing header, an unmatched template
+signature) fails the configure step immediately. The full cppwg output is written to
+`cppwg.log` in the project's build tree, at
+`${CHASTE_BUILD_DIR}/projects/<project_name>/dynamic/cppwg.log`; read it to see which class
+or header caused the failure, fix `dynamic/config.yaml`, and re-run `scripts/configure.sh`.
+Wrappers are regenerated on every configure, so your edits are always picked up.
+
+**Configure fails with "No Python wrapper sources were generated".** cppwg ran but produced
+no wrappers — usually because no classes under the `all` module actually matched (for
+example the header was not found on the include path, or every class name was misspelt).
+Check the `classes:` and `source_includes:` entries in `dynamic/config.yaml` against
+`cppwg.log`, then re-configure.
+
+**Compilation fails with missing PyChaste or Chaste headers.** Make sure PyChaste is enabled
+(it is automatically when `dynamic/config.yaml` is present) and that your Chaste source tree
+is built with PyChaste support. To force a clean rebuild of just the wrappers,
+`make <project_name>_wrappers` from the build directory, or run `scripts/clean.sh` followed by `scripts/configure.sh`.
+
+**`import myproject` fails at runtime**, typically with an error importing `petsc4py`,
+`mpi4py` or `vtk`. Those are PyChaste's native runtime dependencies and must be importable
+from the interpreter running your script — see [Prerequisites](#prerequisites). Activate the
+project virtualenv (`source .virtualenv/bin/activate`), which is created with
+`--system-site-packages` so it can see them, or install them yourself when working outside
+the `chaste/base` image.

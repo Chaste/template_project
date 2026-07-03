@@ -74,13 +74,11 @@ set(WRAPPER_GENERATION_COMMAND
         --std c++17
 )
 
-# Generate wrappers if not already present
-if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/wrappers")
-    execute_process(
-        COMMAND ${WRAPPER_GENERATION_COMMAND}
-        COMMAND_ERROR_IS_FATAL ANY
-    )
-endif()
+# Generate wrappers
+execute_process(
+    COMMAND ${WRAPPER_GENERATION_COMMAND}
+    COMMAND_ERROR_IS_FATAL ANY
+)
 
 # Target for manually regenerating wrappers
 add_custom_target(template_project_wrappers
@@ -102,6 +100,13 @@ file(GLOB_RECURSE WRAPPER_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.hpp
 )
+
+if(NOT WRAPPER_SOURCES)
+    message(FATAL_ERROR
+        "No Python wrapper sources were generated for the project. "
+        "Check the classes listed in dynamic/config.yaml and the cppwg log at: "
+        "  ${CMAKE_CURRENT_BINARY_DIR}/cppwg.log")
+endif()
 
 pybind11_add_module(_template_project_all OPT_SIZE ${WRAPPER_SOURCES})
 
