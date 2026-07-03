@@ -19,6 +19,7 @@ jobs:
       options: --user root
 
     env:
+      CHASTE_SOURCE_DIR: /tmp/Chaste
       CHASTE_BUILD_DIR: /tmp/build
       CHASTE_TEST_OUTPUT: /tmp/testoutput
       PROJECT_DIR: /tmp/myproject
