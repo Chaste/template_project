@@ -37,6 +37,7 @@ Run this script from the project directory once it has been renamed to your proj
 import os
 import re
 import shutil
+import subprocess
 
 
 class Settings:
@@ -159,6 +160,41 @@ def print_banner(*lines: str) -> None:
     print(border)
 
 
+def create_virtualenv(settings: Settings) -> None:
+    """Create the project virtualenv for the Python bindings.
+
+    Creates .virtualenv/ with --system-site-packages so it can see PyChaste's native
+    runtime dependencies (petsc4py, mpi4py, vtk) provided by the system Python. On any
+    failure this is non-fatal: it prints the manual command so the user can create it
+    themselves. The compiled bindings are installed into this virtualenv later by
+    scripts/bindings_install.sh, once the project has been built.
+    """
+    venv_dir = os.path.join(settings.PROJECT_ROOT, ".virtualenv")
+    try:
+        subprocess.run(["python3", "-m", "venv", "--system-site-packages", venv_dir], check=True)
+    except (subprocess.CalledProcessError, OSError) as error:
+        print("")
+        print(f"WARNING: could not create the project virtualenv automatically ({error}).")
+        print("Create it manually with:")
+        print(f"  python3 -m venv --system-site-packages {venv_dir}")
+        return
+
+    # Warn (non-fatal) if PyChaste's native runtime dependencies are not visible to the
+    # venv. They are provided by the system Python (e.g. in the chaste/base Docker image),
+    # not pip-installed; the bindings will fail to import at runtime without them.
+    venv_python = os.path.join(venv_dir, "bin", "python")
+    missing = [
+        module
+        for module in ("petsc4py", "mpi4py", "vtk")
+        if subprocess.run([venv_python, "-c", f"import {module}"], capture_output=True).returncode != 0
+    ]
+    if missing:
+        print("")
+        print(f"WARNING: PyChaste runtime dependencies not found: {', '.join(missing)}.")
+        print("These are provided by the system Python (e.g. in the chaste/base image) and are")
+        print("needed to import the bindings. Install them on your system before using the bindings.")
+
+
 def is_setup(settings: Settings) -> bool:
     """Return True if the project has already been set up (any of the example files are renamed)."""
     return not all(os.path.exists(file) for file in settings.TEMPLATE_SOURCE_FILES)
@@ -256,6 +292,9 @@ def setup(settings: Settings) -> None:
         # Rename the Python package directory (template_project/ -> <project_name>/)
         new_pkg_dir = os.path.join(settings.PROJECT_ROOT, "src", "py", settings.PROJECT_NAME)
         os.rename(settings.PYTHON_PKG_TEMPLATE_DIR, new_pkg_dir)
+        # Create the project virtualenv (the compiled bindings are installed later
+        # by scripts/bindings_install.sh).
+        create_virtualenv(settings)
     else:
         # Remove the Python binding template files
         shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "dynamic"))
@@ -276,6 +315,7 @@ def setup(settings: Settings) -> None:
 
     if python_bindings:
         print("* Set up Python bindings in dynamic/ and src/py/.")
+        print("* Created the project virtualenv in .virtualenv/.")
     else:
         print("* Removed Python bindings template files in dynamic/ and src/py/.")
 
