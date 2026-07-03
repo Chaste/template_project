@@ -37,17 +37,19 @@ jobs:
           cp -r . ${{ env.PROJECT_DIR }}
           cd ${{ env.PROJECT_DIR }}
           # Yes to cell_based component and Python bindings, defaults otherwise, yes to confirm
-          printf '\ny\n\n\n\ny\ny\n' | python3 setup_project.py
+          printf '\ny\ny\n\n\ny\ny\n' | python3 setup_project.py
 
       - name: Add MyForce to the project bindings
         run: |
           cd ${{ env.PROJECT_DIR }}
           cp examples/my_force/MyForce.hpp examples/my_force/MyForce.cpp src/
-          sed -i 's/^source_includes:/source_includes:\n  - MyForce.hpp/' dynamic/config.yaml
-          sed -i 's/^    classes:/    classes:\n      - name: MyForce/' dynamic/config.yaml
+          sed -i.bak 's/^source_includes:$/&\n  - MyForce.hpp/' dynamic/config.yaml
+          sed -i.bak 's/^    classes:$/&\n      - name: MyForce/' dynamic/config.yaml
           # Import PyChaste's module and declare AbstractForce as an external base
-          # so MyForce can inherit AbstractForce across modules
-          sed -i 's/^  - name: all/  - name: all\n    imports:\n      - chaste._pychaste_all\n    external_bases:\n      - AbstractForce/' dynamic/config.yaml
+          sed -i.bak 's/^  - name: all$/&\n    imports:/' dynamic/config.yaml
+          sed -i.bak 's/^    imports:$/&\n      - chaste._pychaste_all/' dynamic/config.yaml
+          sed -i.bak 's/^      - chaste._pychaste_all$/&\n    external_bases:/' dynamic/config.yaml
+          sed -i.bak 's/^    external_bases:$/&\n      - AbstractForce/' dynamic/config.yaml
 
       - name: Configure
         run: ${{ env.PROJECT_DIR }}/scripts/configure.sh

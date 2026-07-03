@@ -37,23 +37,23 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
     - MyForce.hpp
   ```
 
-* under the `all` module, add the class to `classes:`, and tell cppwg that the
-  base class `AbstractForce` is wrapped in PyChaste: import PyChaste's compiled
-  module under `imports:` and list the base class under `external_bases:`
+* under the `all` module, add the `MyForce` to `classes:`, then tell cppwg that
+  `AbstractForce` is wrapped in PyChaste by adding the `chaste._pychaste_all`
+  module under `imports:` and listing `AbstractForce` under `external_bases:`
 
   ```yaml
   modules:
     - name: all
-      imports:
-        - chaste._pychaste_all
-      external_bases:
-        - AbstractForce
+      imports: #<-- new
+        - chaste._pychaste_all #<-- new
+      external_bases: #<-- new
+        - AbstractForce #<-- new
       source_locations:
         - src/
       classes:
         - name: Hello_ProjectName
-        - name: MyForce
-  ```
+        - name: MyForce #<-- new
+```
 
   This is what makes the cross-module inheritance work: `MyForce` subclasses
   `AbstractForce`, which is wrapped in PyChaste (a different package). Listing
@@ -63,12 +63,11 @@ Tell cppwg to wrap the new class by editing `dynamic/config.yaml`:
   Without this, `OffLatticeSimulation.AddForce(my_force)` would reject the force
   because Python would not recognise `MyForce` as an `AbstractForce`.
 
-  > This requires a version of [cppwg](https://github.com/Chaste/cppwg) with
-  > cross-module inheritance support (the `imports` and `external_bases` config
-  > keys).
+  > Use the latest version of [cppwg](https://github.com/Chaste/cppwg) to
+  > ensure it has cross-module inheritance support.
 
-Because `MyForce` is templated over `<unsigned DIM>`, it is wrapped once per dimension and
-exposed in Python as `MyForce_2` (2D) and `MyForce_3` (3D).
+Because `MyForce` is templated over `<unsigned DIM>`, it is wrapped once per
+dimension and exposed in Python as `MyForce_2` (2D) and `MyForce_3` (3D).
 
 ## 3. Compile and install the bindings
 
