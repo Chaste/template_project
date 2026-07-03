@@ -96,10 +96,5 @@ safe_rm() {
 		echo "Error: refusing to remove unsafe path '${path}'." >&2
 		exit 1
 	fi
-	if [[ -t 0 ]]; then
-		# Prompt for confirmation if in an interactive shell.
-		rm -rI "${path}"
-	else
-		rm -rf "${path}"
-	fi
+	rm -rf "${path}"
 }

@@ -101,6 +101,13 @@ file(GLOB_RECURSE WRAPPER_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.hpp
 )
 
+if(NOT WRAPPER_SOURCES)
+    message(FATAL_ERROR
+        "No Python wrapper sources were generated for the project. "
+        "Check the classes listed in dynamic/config.yaml and the cppwg log at: "
+        "  ${CMAKE_CURRENT_BINARY_DIR}/cppwg.log")
+endif()
+
 pybind11_add_module(_template_project_all OPT_SIZE ${WRAPPER_SOURCES})
 
 target_link_libraries(_template_project_all PRIVATE

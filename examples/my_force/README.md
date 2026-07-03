@@ -5,7 +5,7 @@ project's Python bindings, and then uses it in a [PyChaste](https://chaste.githu
 simulation driven from Python.
 
 It assumes you have already created your project from this template and answered **yes** to
-the Python bindings prompt in `setup_project.py`, so that `dynamic/config.yaml`,
+the Python bindings prompt and **yes** to the cell-based prompt in `setup_project.py`, so that `dynamic/config.yaml`,
 `dynamic/CMakeLists.txt` and `src/py/` are present.
 
 Run every command below from your project's root directory, and replace `myproject` with
@@ -136,6 +136,9 @@ confirming that your new C++ class is callable from Python.
 > If `myproject.MyForce_2` is not found, list the generated names with
 > `print([n for n in dir(myproject) if "MyForce" in n])` — the dimension suffix depends on
 > how the class is templated (see the note in the top-level README).
+
+## Troubleshooting
+See the main [README](../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.
 
 ## Next steps
 
