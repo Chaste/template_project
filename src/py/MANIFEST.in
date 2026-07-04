@@ -1,1 +1,1 @@
-recursive-include template_project/ *.so
+recursive-include template_project *.so
