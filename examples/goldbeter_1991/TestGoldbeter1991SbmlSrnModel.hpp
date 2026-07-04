@@ -12,7 +12,7 @@
 #include "TransitCellProliferativeType.hpp"
 #include "WildTypeCellMutationState.hpp"
 
-// The header generated from Goldbeter1991.xml by chaste_codegen_sbml.
+// The header generated from Goldbeter1991.xml by chaste-sbml.
 #include "Goldbeter1991SbmlSrnModel.hpp"
 
 // This is a serial test.

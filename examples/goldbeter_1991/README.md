@@ -9,7 +9,7 @@ to the SBML prompt in `setup_project.py`, so that:
 
 * the SBML base classes are present in `src/`,
 * `cell_based` is listed in `CMakeLists.txt`, and
-* `chaste-codegen-sbml` is installed in `.virtualenv/`.
+* `chaste-sbml` is installed in `.virtualenv/`.
 
 Run every command below from your project's root directory.
 
@@ -42,7 +42,7 @@ curl -L "https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000003?filename
 Goldbeter 1991 is a sub-cellular reaction network, so use `--model-type srn`:
 
 ```sh
-chaste_codegen_sbml Goldbeter1991.xml --model-type srn --output-dir src/
+chaste-sbml generate Goldbeter1991.xml --model-type srn --output-dir src/
 ```
 
 This generates four files in `src/`:

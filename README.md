@@ -28,12 +28,13 @@ Do you want to create an SBML user project?
 source .virtualenv/bin/activate
 ```
 
-(If you ever need to (re)install the generator by hand, run `scripts/sbml_install.sh`.)
+(If you ever need to (re)install the generator or refresh the base classes by hand, run
+`scripts/sbml_install.sh`.)
 
 ### 3. Convert an SBML model into a Chaste model
 
 ```sh
-chaste_codegen_sbml my_model.xml --model-type srn --output-dir src/
+chaste-sbml generate my_model.xml --model-type srn --output-dir src/
 ```
 
 * `--model-type` is one of `generic`, `srn` (sub-cellular reaction network), or
@@ -60,7 +61,9 @@ scripts/test.sh        # run the project's tests
 
 ### The SBML base classes
 
-These live in `src/` and are required by the generated code:
+`setup_project.py` copies these into `src/` from the installed `chaste-sbml` package (via
+`chaste-sbml copy-base-classes`), so they always match the generator version. They are
+required by the generated code:
 
 | File | Purpose |
 | --- | --- |

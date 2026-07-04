@@ -17,7 +17,7 @@ require_command python3
 
 # The SBML generator formats its output with clang-format; warn (non-fatal) if absent.
 if ! command -v clang-format >/dev/null 2>&1; then
-	echo "Warning: clang-format is not on PATH; chaste_codegen_sbml needs it to format generated code." >&2
+	echo "Warning: clang-format is not on PATH; chaste-sbml needs it to format generated code." >&2
 fi
 
 # Create the project virtualenv if it does not already exist (shared with the Python
@@ -29,7 +29,12 @@ fi
 "${VENV_DIR}/bin/pip" install --upgrade pip
 "${VENV_DIR}/bin/pip" install "git+https://github.com/Chaste/chaste-codegen-sbml@develop"
 
+# Copy the C++ base classes the generated code depends on into the project's src/, so they
+# always match the installed version of the generator.
+"${VENV_DIR}/bin/chaste-sbml" copy-base-classes --output-dir "${PROJECT_ROOT}/src"
+
 echo ""
-echo "Installed chaste-codegen-sbml into '${VENV_DIR}'."
+echo "Installed the SBML code generator into '${VENV_DIR}'."
+echo "Copied the SBML base classes into '${PROJECT_ROOT}/src'."
 echo "Activate the virtualenv with: source '${VENV_DIR}/bin/activate'"
-echo "Then convert an SBML model with: chaste_codegen_sbml --help"
+echo "Then convert an SBML model with: chaste-sbml --help"
