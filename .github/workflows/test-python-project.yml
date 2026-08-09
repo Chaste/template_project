@@ -1,0 +1,64 @@
+name: Test Python Project
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: test-python-project-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-python-project:
+    runs-on: ubuntu-latest
+
+    container:
+      image: chaste/base
+      options: --user root
+
+    env:
+      CHASTE_SOURCE_DIR: /tmp/Chaste
+      CHASTE_BUILD_DIR: /tmp/build
+      CHASTE_TEST_OUTPUT: /tmp/testoutput
+      PROJECT_DIR: /tmp/myproject
+
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v7
+
+      - name: Checkout Chaste source
+        run: |
+          git clone --depth 1 --branch develop https://github.com/Chaste/Chaste.git "${CHASTE_SOURCE_DIR}"
+          git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
+
+      - name: Create test project
+        run: |
+          cp -r . ${{ env.PROJECT_DIR }}
+          cd ${{ env.PROJECT_DIR }}
+          # Yes to Python bindings, no to SBML, yes to final confirmation
+          printf '\n\n\n\n\ny\nn\ny\n' | python3 setup_project.py
+
+      - name: Configure
+        run: |
+          ${{ env.PROJECT_DIR }}/scripts/configure.sh
+
+      - name: Compile
+        run: |
+          ${{ env.PROJECT_DIR }}/scripts/compile.sh
+
+      - name: Install
+        run: |
+          ${{ env.PROJECT_DIR }}/scripts/bindings_install.sh
+
+      - name: Test Python bindings
+        run: |
+          ${{ env.PROJECT_DIR }}/.virtualenv/bin/python -c "
+          import myproject
+          h = myproject.Hello_myproject('Hello from Python!')
+          message = h.GetMessage()
+          assert message == 'Hello from Python!', f'Expected \"Hello from Python!\" but got \"{message}\"'
+          print(f'GetMessage() returned: {message}')
+          print('Test passed!')
+          "

@@ -1,0 +1,65 @@
+name: Test Force Example
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: test-force-example-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-force-example:
+    runs-on: ubuntu-latest
+
+    container:
+      image: chaste/base
+      options: --user root
+
+    env:
+      CHASTE_SOURCE_DIR: /tmp/Chaste
+      CHASTE_BUILD_DIR: /tmp/build
+      CHASTE_TEST_OUTPUT: /tmp/testoutput
+      PROJECT_DIR: /tmp/myproject
+
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v7
+
+      - name: Checkout Chaste source
+        run: |
+          git clone --depth 1 --branch develop https://github.com/Chaste/Chaste.git "${CHASTE_SOURCE_DIR}"
+          git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
+
+      - name: Create test project
+        run: |
+          cp -r . ${{ env.PROJECT_DIR }}
+          cd ${{ env.PROJECT_DIR }}
+          # Yes to proceed, Yes to cell_based, No to crypt/heart/lung, Yes to Python bindings, No to SBML, Yes to confirm
+          printf 'y\ny\nn\nn\nn\ny\nn\ny\n' | python3 setup_project.py
+
+      - name: Add MyForce to the project bindings
+        run: |
+          cd ${{ env.PROJECT_DIR }}
+          cp examples/my_force/MyForce.hpp examples/my_force/MyForce.cpp src/
+          sed -i.bak 's/^source_includes:$/&\n  - MyForce.hpp/' dynamic/config.yaml
+          sed -i.bak 's/^    classes:$/&\n      - name: MyForce/' dynamic/config.yaml
+          # Import PyChaste's module and declare AbstractForce as an external base
+          sed -i.bak 's/^  - name: all$/&\n    imports:/' dynamic/config.yaml
+          sed -i.bak 's/^    imports:$/&\n      - chaste._pychaste_all/' dynamic/config.yaml
+          sed -i.bak 's/^      - chaste._pychaste_all$/&\n    external_bases:/' dynamic/config.yaml
+          sed -i.bak 's/^    external_bases:$/&\n      - AbstractForce/' dynamic/config.yaml
+
+      - name: Configure
+        run: ${{ env.PROJECT_DIR }}/scripts/configure.sh
+
+      - name: Compile
+        run: ${{ env.PROJECT_DIR }}/scripts/compile.sh
+
+      - name: Install
+        run: ${{ env.PROJECT_DIR }}/scripts/bindings_install.sh
+
+      - name: Run the MyForce simulation from Python
+        run: ${{ env.PROJECT_DIR }}/.virtualenv/bin/python ${{ env.PROJECT_DIR }}/examples/my_force/run_my_force.py
