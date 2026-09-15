@@ -48,16 +48,16 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This is an example of a CxxTest test suite, used to test the source
  * code, and also used to run simulations (as it provides a handy
- * shortcut to compile and link against the correct libraries using scons).
+ * shortcut to compile and link against the correct libraries using cmake).
  *
  * You can #include any of the files in the project 'src' folder.
  * For example here we #include "Hello.hpp"
  *
  * You can utilise any of the code in the main the Chaste trunk
  * in exactly the same way.
- * NOTE: you will have to alter the project SConscript file lines 41-44
- * to enable #including of code from the 'heart', 'cell_based' or 'crypt'
- * components of Chaste.
+ * NOTE: you will have to alter the find_package(...) line in the main project
+ * CMakeLists.txt file to enable #including of code from the 'heart',
+ * 'cell_based' or 'crypt' components of Chaste.
  */
 
 class TestHello : public CxxTest::TestSuite
