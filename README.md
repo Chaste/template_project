@@ -81,7 +81,7 @@ This template can build [PyChaste](https://chaste.github.io/) Python bindings fo
 project's C++ classes using [cppwg](https://github.com/Chaste/cppwg), so you can drive
 your project from Python. For a complete, worked example — writing a new C++ `Force` and
 using it in a Python simulation — see
-[examples/my_force/README.md](examples/my_force/README.md).
+[examples/python_example/README.md](examples/python_example/README.md).
 
 ### Prerequisites
 
@@ -181,7 +181,7 @@ modules:
 > (see https://chaste.github.io/cppwg/). If you are unsure of a generated name,
 > run `print([n for n in dir(myproject) if "MyClass" in n])`.
 
-See [examples/my_force/README.md](examples/my_force/README.md) for a full
+See [examples/python_example/README.md](examples/python_example/README.md) for a full
 walkthrough of this process.
 
 ### Troubleshooting the bindings

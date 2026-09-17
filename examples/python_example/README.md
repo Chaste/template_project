@@ -16,7 +16,7 @@ your project's name throughout.
 Copy the example force class into your project's `src/` directory:
 
 ```sh
-cp examples/my_force/MyForce.hpp examples/my_force/MyForce.cpp src/
+cp examples/python_example/MyForce.hpp examples/python_example/MyForce.cpp src/
 ```
 
 [`MyForce`](MyForce.hpp) is templated over the spatial dimension and subclasses
@@ -116,7 +116,7 @@ simulator.Solve()
 Edit the `import myproject` line to your project name, then run it:
 
 ```sh
-python examples/my_force/run_my_force.py
+python examples/python_example/run_my_force.py
 ```
 
 You should see the simulation run to completion and print the number of cells. The custom
@@ -128,7 +128,7 @@ confirming that your new C++ class is callable from Python.
 > how the class is templated (see the note in the top-level README).
 
 ## Troubleshooting
-See the main [README](../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.
+See the main [README](../../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.
 
 ## Next steps
 
