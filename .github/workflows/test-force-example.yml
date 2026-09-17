@@ -44,7 +44,6 @@ jobs:
         run: |
           cd ${{ env.PROJECT_DIR }}
           cp examples/my_force/MyForce.hpp examples/my_force/MyForce.cpp src/
-          sed -i.bak 's/^source_includes:$/&\n  - MyForce.hpp/' dynamic/config.yaml
           sed -i.bak 's/^    classes:$/&\n      - name: MyForce/' dynamic/config.yaml
           # Import PyChaste's module and declare AbstractForce as an external base
           sed -i.bak 's/^  - name: all$/&\n    imports:/' dynamic/config.yaml

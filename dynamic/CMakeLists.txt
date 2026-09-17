@@ -40,41 +40,54 @@ endif()
 # Get includes from the project's chaste target
 get_target_property(PROJECT_INCLUDE_DIRS chaste_project_template_project INCLUDE_DIRECTORIES)
 
-# Add VTK 9+ includes
-if(TARGET VTK::CommonCore)
-    get_target_property(_include_dirs VTK::CommonCore INTERFACE_INCLUDE_DIRECTORIES)
-    foreach(_dir IN LISTS _include_dirs)
-        if(_dir MATCHES "^\\$<BUILD_INTERFACE:(.+)>$")
-            # VTK 9.5+ have $<BUILD_INTERFACE:path> generator expressions in their includes
-            list(APPEND PROJECT_INCLUDE_DIRS "${CMAKE_MATCH_1}")
-        elseif(NOT _dir MATCHES "^\\$<")
-            # VTK 9.0 to 9.4 have plain include paths, no generator expressions
-            list(APPEND PROJECT_INCLUDE_DIRS "${_dir}")
-        endif()
-    endforeach()
+# Inherit the include configuration that pychaste exposes for
+# VTK, PETSc4Py and the pybind11 typecasters.
+get_target_property(PYCHASTE_INTERFACE_INCLUDE_DIRS chaste_pychaste INTERFACE_INCLUDE_DIRECTORIES)
+if(NOT PYCHASTE_INTERFACE_INCLUDE_DIRS)
+    message(FATAL_ERROR
+        "Cannot find chaste_pychaste INTERFACE include directories; update your Chaste source tree.")
 endif()
-
-# Add PETSc4Py includes
-list(APPEND PROJECT_INCLUDE_DIRS ${PETSC4PY_INCLUDES})
+foreach(_dir IN LISTS PYCHASTE_INTERFACE_INCLUDE_DIRS)
+    if(_dir MATCHES "^\\$<BUILD_INTERFACE:(.+)>$")
+        list(APPEND PROJECT_INCLUDE_DIRS "${CMAKE_MATCH_1}")
+    elseif(NOT _dir MATCHES "^\\$<")
+        list(APPEND PROJECT_INCLUDE_DIRS "${_dir}")
+    endif()
+endforeach()
 
 # Add the project's own source directory so cppwg can find project headers
 list(APPEND PROJECT_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
-# Add pychaste typecaster includes
-header_dirs("${CMAKE_SOURCE_DIR}/pychaste/dynamic" _include_dirs)
-list(APPEND PROJECT_INCLUDE_DIRS ${_include_dirs})
+list(REMOVE_DUPLICATES PROJECT_INCLUDE_DIRS)
 
-# Command for generating wrappers
+# To parse C++ headers, castxml mimics a compiler. PyChaste searches for clang,
+# which has better castxml support, and caches the result in Chaste_CASTXML_COMPILER,
+# which this project inherits. The fallback is set to the normal compiler below.
+# The library itself is built with the normal compiler either way.
+if(NOT Chaste_CASTXML_COMPILER)
+    set(Chaste_CASTXML_COMPILER ${CMAKE_CXX_COMPILER})
+    message(WARNING "clang not found. Using ${CMAKE_CXX_COMPILER} as the castxml"
+                    " compiler. Wrapper generation may fail")
+endif()
+
+# Command for generating wrappers.
+#  - gnu++17 (rather than c++17) and -Wno-missing-template-arg-list-after-template-kw
+#    silence a castxml/LLVM error on use of the template keyword without a
+#    following argument list, which appears in some boost headers.
 set(WRAPPER_GENERATION_COMMAND
     ${chaste_python3_venv}/cppwg ${CMAKE_CURRENT_SOURCE_DIR}/..
         -w ${CMAKE_CURRENT_BINARY_DIR}/wrappers
         -p ${CMAKE_CURRENT_SOURCE_DIR}/config.yaml
         -i ${PROJECT_INCLUDE_DIRS}
         -l ${CMAKE_CURRENT_BINARY_DIR}/cppwg.log
-        --std c++17
+        --std "gnu++17"
+        --castxml_cflags="-Wno-missing-template-arg-list-after-template-kw"
+        --castxml_compiler ${Chaste_CASTXML_COMPILER}
 )
 
-# Generate wrappers
+# Generate wrappers. Unlike pychaste, which generates once, a user project
+# regenerates on every configure so that edits to config.yaml and to the
+# project's own classes are picked up.
 execute_process(
     COMMAND ${WRAPPER_GENERATION_COMMAND}
     COMMAND_ERROR_IS_FATAL ANY
@@ -96,7 +109,7 @@ list(APPEND PROJECT_INCLUDE_DIRS ${_include_dirs})
 # Creates a `_template_project_all` library from the Python wrappers.
 # When built, it can be used in Python as `from template_project._template_project_all import *`.
 
-file(GLOB_RECURSE WRAPPER_SOURCES
+file(GLOB_RECURSE WRAPPER_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/wrappers/all/*.hpp
 )
@@ -111,7 +124,6 @@ endif()
 pybind11_add_module(_template_project_all OPT_SIZE ${WRAPPER_SOURCES})
 
 target_link_libraries(_template_project_all PRIVATE
-    ${Python3_LIBRARIES}
     Chaste_COMMON_DEPS
     chaste_project_template_project
     chaste_pychaste
@@ -119,16 +131,22 @@ target_link_libraries(_template_project_all PRIVATE
 
 target_include_directories(_template_project_all PRIVATE ${PROJECT_INCLUDE_DIRS})
 
-target_compile_options(_template_project_all PRIVATE -Wno-unused-local-typedefs)
+# -g0: Disable debug symbols in the Python modules as they are not needed.
+target_compile_options(_template_project_all PRIVATE -Wno-unused-local-typedefs -g0)
 
-set_target_properties(_template_project_all PROPERTIES INTERPROCEDURAL_OPTIMIZATION ON)
-
-add_dependencies(_template_project_all pychaste)
-add_dependencies(project_template_project _template_project_all)
+# Perform link-time optimization for Release builds only.
+set_target_properties(_template_project_all PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # clang ThinLTO needs lld.
+    target_link_options(_template_project_all PRIVATE -fuse-ld=lld)
+endif()
 
 set_target_properties(_template_project_all PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/package/template_project
 )
+
+add_dependencies(_template_project_all pychaste)
+add_dependencies(project_template_project _template_project_all)
 
 ################################
 ####  Copy Python source
@@ -136,11 +154,15 @@ set_target_properties(_template_project_all PROPERTIES
 
 file(GLOB_RECURSE _py_sources
     CONFIGURE_DEPENDS
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/../src/py
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/*
 )
 list(FILTER _py_sources EXCLUDE REGEX "\\.(dll|dylib|pyc|so)$")
 
 foreach(_src ${_py_sources})
-    file(RELATIVE_PATH _rel ${CMAKE_CURRENT_SOURCE_DIR}/../src/py ${_src})
-    configure_file(${_src} ${CMAKE_CURRENT_BINARY_DIR}/package/${_rel} COPYONLY)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/${_src}
+        ${CMAKE_CURRENT_BINARY_DIR}/package/${_src}
+        COPYONLY
+    )
 endforeach()

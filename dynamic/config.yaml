@@ -30,8 +30,8 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # CPPWG configuration for template_project Python bindings.
-# See https://github.com/Chaste/cppwg for documentation.
-# Add classes here as you add them to your project.
+# See https://chaste.github.io/cppwg/ for documentation, and Chaste/pychaste/dynamic/config.yaml
+# for a large worked example. Add classes here as you add them to your project.
 
 name: template_project
 
@@ -41,19 +41,37 @@ reference_call_policy: reference_internal
 
 common_include_file: OFF
 
+# Automatically include the headers each wrapper needs. A class's own header is
+# always included, so only extra headers need listing under source_includes.
+auto_includes: True
+
+# Skip bindings for methods that only override a virtual base class method that
+# is already wrapped on the base class as these are redundant.
+exclude_inherited_overrides: True
+
+# Auto-include type-caster headers in wrappers that use their types. These are the
+# casters pychaste ships; cppwg adds each one only to the wrappers that need it.
+typecasters:
+  - header: PybindPetscTypeCaster.hpp
+    types: [Vec, Mat]
+  - header: PybindUblasTypeCaster.hpp
+    types: [boost::numeric::ublas::c_vector]
+  - header: PybindVTKTypeCaster.hpp
+    types: [vtkSmartPointer, vtkNew]
+
+# Headers added to every class wrapper.
 source_includes:
   - SmartPointers.hpp
-  - Hello.hpp
 
-template_substitutions:
-  - signature: <unsigned DIM>
-    replacement: [[2], [3]]
-  - signature: <unsigned SPACE_DIM>
-    replacement: [[2], [3]]
-  - signature: <unsigned ELEMENT_DIM, unsigned SPACE_DIM>
-    replacement: [[2, 2], [3, 3]]
-  - signature: <unsigned ELEMENT_DIM, unsigned SPACE_DIM=ELEMENT_DIM>
-    replacement: [[2, 2], [3, 3]]
+# Wrap the explicit template instantiations declared in the project's own .cpp files,
+# e.g. `template class MyForce<2>;` wraps MyForce as MyForce_2. If a class's
+# instantiations cannot be discovered this way, list them per class instead with
+# template_substitutions (see the cppwg docs on templates).
+discover_template_instantiations: True
+discover_arg_excludes:
+  DIM: [0]
+  SPACE_DIM: [0]
+  ELEMENT_DIM: [0]
 
 modules:
   - name: all

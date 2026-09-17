@@ -149,10 +149,8 @@ print(hello.GetMessage())
 
 ### 5. Add your own C++ classes to the bindings
 
-To expose a new class, add it to `src/`, then list it in `dynamic/config.yaml`:
-
-* add the header to `source_includes:`, and
-* add `- name: YourClass` under the `all` module's `classes:`.
+To expose a new class, add it to `src/`, then add `- name: MyClass` under the
+`all` module's `classes:` in `dynamic/config.yaml`.
 
 Then recompile (`scripts/compile.sh`) and reinstall (`scripts/bindings_install.sh`).
 
@@ -169,44 +167,54 @@ modules:
     external_bases:
       - AbstractForce
     classes:
-      - name: YourClass
+      - name: MyClass
 ```
 
-> **Class names for templated classes.** A templated class is wrapped once per
-> dimension, with the dimensions appended after an underscore. For example a class
-> templated over `<unsigned DIM>` becomes `YourClass_2` / `YourClass_3`, and one templated
-> over `<ELEMENT_DIM, SPACE_DIM>` becomes `YourClass_2_2` / `YourClass_3_3`. (PyChaste's own
-> classes additionally expose no-underscore aliases such as `OffLatticeSimulation2_2`.) If
-> you are unsure of a generated name, run
-> `print([n for n in dir(myproject) if "YourClass" in n])`.
+> **Class names for templated classes.** `dynamic/config.yaml` sets
+> `discover_template_instantiations: True`, so cppwg wraps the explicit instantiations
+> declared in your own `.cpp` files — write `template class MyClass<2>;` and you
+> get `MyClass_2`. The dimensions follow an underscore: a class templated over
+> `<unsigned DIM>` becomes `MyClass_2` / `MyClass_3`, and one templated over
+> `<ELEMENT_DIM, SPACE_DIM>` becomes `MyClass_2_2` / `MyClass_3_3`. If a class's
+> instantiations cannot be discovered this way — for example they are generated
+> by a macro — list them for that class with `template_substitutions` instead
+> (see https://chaste.github.io/cppwg/). If you are unsure of a generated name,
+> run `print([n for n in dir(myproject) if "MyClass" in n])`.
 
-See [examples/my_force/README.md](examples/my_force/README.md) for a full walkthrough of
-this process.
+See [examples/my_force/README.md](examples/my_force/README.md) for a full
+walkthrough of this process.
 
 ### Troubleshooting the bindings
 
-**Wrapper generation fails during `scripts/configure.sh`.** cppwg runs at configure time, so
-an error in `dynamic/config.yaml` (a misspelt class, a missing header, an unmatched template
-signature) fails the configure step immediately. The full cppwg output is written to
-`cppwg.log` in the project's build tree, at
-`${CHASTE_BUILD_DIR}/projects/<project_name>/dynamic/cppwg.log`; read it to see which class
-or header caused the failure, fix `dynamic/config.yaml`, and re-run `scripts/configure.sh`.
-Wrappers are regenerated on every configure, so your edits are always picked up.
+**Wrapper generation fails during `scripts/configure.sh`.** cppwg runs at
+configure time, so an error in `dynamic/config.yaml` (e.g. a misspelt class, a
+missing header, an unmatched template signature) fails the configure step
+immediately. The full cppwg output is written to `cppwg.log` in the project's
+build tree, at `${CHASTE_BUILD_DIR}/projects/<project_name>/dynamic/cppwg.log`;
+read it to see which class or header caused the failure, fix `dynamic/config.yaml`,
+and re-run `scripts/configure.sh`. Wrappers are regenerated on every configure,
+so your edits are always picked up.
 
-**Configure fails with "No Python wrapper sources were generated".** cppwg ran but produced
-no wrappers — usually because no classes under the `all` module actually matched (for
-example the header was not found on the include path, or every class name was misspelt).
-Check the `classes:` and `source_includes:` entries in `dynamic/config.yaml` against
-`cppwg.log`, then re-configure.
+**Configure fails with "No Python wrapper sources were generated".** cppwg ran
+but produced no wrappers — usually because no classes under the `all` module
+actually matched (for example the header was not found on the include path, or
+every class name was misspelt). Check the `classes:` and `source_locations:`
+entries in `dynamic/config.yaml` against `cppwg.log`, then re-configure.
 
-**Compilation fails with missing PyChaste or Chaste headers.** Make sure PyChaste is enabled
-(it is automatically when `dynamic/config.yaml` is present) and that your Chaste source tree
-is built with PyChaste support. To force a clean rebuild of just the wrappers,
-`make <project_name>_wrappers` from the build directory, or run `scripts/clean.sh` followed by `scripts/configure.sh`.
+**Compilation fails with missing PyChaste or Chaste headers.** Make sure PyChaste
+is enabled (it is automatically when `dynamic/config.yaml` is present) and that
+your Chaste source tree is built with PyChaste support. The project inherits its
+VTK, PETSc4Py and typecaster include paths from PyChaste's `chaste_pychaste`
+target, so a Chaste tree configured without PyChaste leaves them unset. To force
+a clean rebuild of just the wrappers, run `make <project_name>_wrappers` from the
+build directory, or run `scripts/clean.sh` followed by `scripts/configure.sh`.
 
-**`import myproject` fails at runtime**, typically with an error importing `petsc4py`,
-`mpi4py` or `vtk`. Those are PyChaste's native runtime dependencies and must be importable
-from the interpreter running your script — see [Prerequisites](#prerequisites). Activate the
-project virtualenv (`source .virtualenv/bin/activate`), which is created with
-`--system-site-packages` so it can see them, or install them yourself when working outside
-the `chaste/base` image.
+**`import myproject` fails at runtime**, typically with an error importing
+`petsc4py`, `mpi4py` or `vtk`. Those are PyChaste's native runtime dependencies
+and must be importable from the interpreter running your script — see
+[Prerequisites](#prerequisites). Activate the project virtualenv
+(`source .virtualenv/bin/activate`), which is created with `--system-site-packages`
+so it can see them, or install them yourself when working outside the `chaste/base`
+image.
+
+> See also https://chaste.github.io/pychaste/dev-guide/

@@ -6,6 +6,8 @@ exclude =
     .git,
     .github,
     .venv,
+    .virtualenv,
     build,
     output,
     venv,
+    virtualenv,

@@ -99,7 +99,6 @@ class Settings:
 
         # Additional substitutions applied only to dynamic/config.yaml.
         self.PYTHON_CONFIG_SUBSTITUTIONS = {
-            "Hello.hpp": f"Hello_{self.PROJECT_NAME}.hpp",
             "name: Hello": f"name: Hello_{self.PROJECT_NAME}",
         }
 
