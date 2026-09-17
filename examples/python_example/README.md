@@ -108,7 +108,7 @@ cell_population = chaste.cell_based.NodeBasedCellPopulation_2(mesh, cells)
 simulator = chaste.cell_based.OffLatticeSimulation_2_2(cell_population)
 simulator.SetOutputDirectory("Python/MyForce")
 simulator.SetEndTime(1.0)
-simulator.AddForce(chaste.cell_based.GeneralisedLinearSpringForce_2_2())
+simulator.AddForce(chaste.cell_based.LinearSpringForce_2_2())
 simulator.AddForce(myproject.MyForce_2(1.0))  # <-- our new force, from C++
 simulator.Solve()
 ```

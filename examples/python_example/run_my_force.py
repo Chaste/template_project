@@ -51,7 +51,7 @@ def main():
     simulator.SetEndTime(1.0)
 
     # A standard spring force keeps neighbouring cells interacting...
-    spring_force = chaste.cell_based.GeneralisedLinearSpringForce_2_2()
+    spring_force = chaste.cell_based.LinearSpringForce_2_2()
     simulator.AddForce(spring_force)
 
     # ...and our custom force from the project bindings pushes every cell in +x.
