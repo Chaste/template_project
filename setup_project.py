@@ -111,7 +111,7 @@ class Settings:
         self.CREATE_VENV_SCRIPT = os.path.join(self.PROJECT_ROOT, "scripts", "create_venv.sh")
 
         # The script that creates the project virtualenv, installs the SBML code generator,
-        # and copies the SBML base classes into src/ (via chaste-sbml copy-base-classes).
+        # and copies the SBML base classes into src/ (via chaste-sbml --copy-base-classes).
         self.SBML_INSTALL_SCRIPT = os.path.join(self.PROJECT_ROOT, "scripts", "sbml_install.sh")
 
 
@@ -224,8 +224,8 @@ def install_sbml_codegen(settings: Settings) -> None:
         print("")
         print(f"WARNING: could not set up SBML support automatically ({error}).")
         print("Set it up manually with:")
-        print(f"  {pip} install 'git+https://github.com/Chaste/chaste-codegen-sbml@develop'")
-        print(f"  {chaste_sbml} copy-base-classes --output-dir {src_dir}")
+        print(f"  {pip} install 'git+https://github.com/Chaste/chaste-sbml@develop'")
+        print(f"  {chaste_sbml} --copy-base-classes --output-dir {src_dir}")
 
 
 def is_setup(settings: Settings) -> bool:
@@ -366,7 +366,7 @@ def setup(settings: Settings) -> None:
 
     if sbml:
         print("* Installed the SBML code generator into .virtualenv and copied the SBML base classes into src/.")
-        print("  See the README and examples/goldbeter_1991/ for how to import an SBML model.")
+        print("  See the README and examples/sbml_example/ for how to import an SBML model.")
 
 
 def main() -> None:

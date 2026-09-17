@@ -33,8 +33,8 @@ jobs:
           git clone --depth 1 --branch develop https://github.com/Chaste/Chaste.git "${CHASTE_SOURCE_DIR}"
           git config --global --add safe.directory "${CHASTE_SOURCE_DIR}"
 
-      - name: Install clang-format and curl
-        run: apt-get update && apt-get install -y clang-format curl
+      - name: Install clang-format
+        run: apt-get update && apt-get install -y clang-format
 
       - name: Create test project
         run: |
@@ -49,11 +49,9 @@ jobs:
       - name: Import the Goldbeter 1991 model
         run: |
           cd ${{ env.PROJECT_DIR }}
-          # Use the vendored model (examples/goldbeter_1991/Goldbeter1991.xml) so the
-          # job does not depend on reaching BioModels at run time.
-          cp examples/goldbeter_1991/Goldbeter1991.xml .
-          .virtualenv/bin/chaste-sbml generate Goldbeter1991.xml --model-type srn --output-dir src/
-          cp examples/goldbeter_1991/TestGoldbeter1991SbmlSrnModel.hpp test/
+          cp examples/sbml_example/Goldbeter1991.xml .
+          .virtualenv/bin/chaste-sbml Goldbeter1991.xml --model-type srn --output-dir src/
+          cp examples/sbml_example/TestGoldbeter1991SbmlSrnModel.hpp test/
           echo "TestGoldbeter1991SbmlSrnModel.hpp" >> test/ContinuousTestPack.txt
 
       - name: Configure

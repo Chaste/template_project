@@ -27,7 +27,7 @@ C++-friendly name. Here we use `Goldbeter1991`.
 A copy of the model is included next to this walkthrough, so just copy it in:
 
 ```sh
-cp examples/goldbeter_1991/Goldbeter1991.xml .
+cp examples/sbml_example/Goldbeter1991.xml .
 ```
 
 Alternatively, download it from BioModels and rename it yourself (this needs network
@@ -42,7 +42,7 @@ curl -L "https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000003?filename
 Goldbeter 1991 is a sub-cellular reaction network, so use `--model-type srn`:
 
 ```sh
-chaste-sbml generate Goldbeter1991.xml --model-type srn --output-dir src/
+chaste-sbml Goldbeter1991.xml --model-type srn --output-dir src/
 ```
 
 This generates four files in `src/`:
@@ -133,7 +133,7 @@ A ready-made copy of this file lives next to this walkthrough at
 copy it into your `test/` directory:
 
 ```sh
-cp examples/goldbeter_1991/TestGoldbeter1991SbmlSrnModel.hpp test/
+cp examples/sbml_example/TestGoldbeter1991SbmlSrnModel.hpp test/
 ```
 
 Then register the test by adding its file name to `test/ContinuousTestPack.txt`:
@@ -162,5 +162,5 @@ C ≈ 0.547   M ≈ 0.294   X ≈ 0.0067
 
 * To import a different model, repeat steps 2–4 with your own `.xml` file, choosing
   `--model-type generic`, `srn`, or `cell-cycle` to match the model.
-* See [chaste-codegen-sbml](https://github.com/Chaste/chaste-codegen-sbml)
-  for more information.
+* See the [chaste-sbml documentation](https://chaste.github.io/chaste-sbml/) for the full
+  set of command-line options.

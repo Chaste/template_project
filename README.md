@@ -11,8 +11,9 @@ If you clone this repository, you should make sure to rename the template_projec
 ## SBML models
 
 This template can turn an [SBML](https://sbml.org/) model into a Chaste model using
-[chaste-codegen-sbml](https://github.com/Chaste/chaste-codegen-sbml). For a complete,
-worked example see [examples/goldbeter_1991/README.md](examples/goldbeter_1991/README.md).
+[chaste-sbml](https://github.com/Chaste/chaste-sbml) (see its
+[documentation](https://chaste.github.io/chaste-sbml/)). For a complete, worked example
+see [examples/sbml_example/README.md](examples/sbml_example/README.md).
 
 ### 1. Enable SBML support
 
@@ -34,7 +35,7 @@ source .virtualenv/bin/activate
 ### 3. Convert an SBML model into a Chaste model
 
 ```sh
-chaste-sbml generate my_model.xml --model-type srn --output-dir src/
+chaste-sbml my_model.xml --model-type srn --output-dir src/
 ```
 
 * `--model-type` is one of `generic`, `srn` (sub-cellular reaction network), or
@@ -43,6 +44,11 @@ chaste-sbml generate my_model.xml --model-type srn --output-dir src/
   with `Sbml`. For example `my_model.xml` produces `MyModelSbmlOdeSystem.{hpp,cpp}`, plus
   `MyModelSbmlSrnModel.{hpp,cpp}` (for `srn`) or `MyModelSbmlCellCycleModel.{hpp,cpp}`
   (for `cell-cycle`).
+* `--tests` writes a placeholder CxxTest skeleton `Test<Name>.hpp` next to the model, and
+  `--no-tests` suppresses it. Use `--test-output-dir test/` to put a generated
+  placeholder somewhere sensible instead (it implies `--tests`).
+* `--timescale ms|s|m|h` sets the model's native time unit, which the generator converts
+  to Chaste's hours. Omit it to auto-detect from the SBML.
 
 ### 4. Write a test
 
@@ -62,7 +68,7 @@ scripts/test.sh        # run the project's tests
 ### The SBML base classes
 
 `setup_project.py` copies these into `src/` from the installed `chaste-sbml` package (via
-`chaste-sbml copy-base-classes`), so they always match the generator version. They are
+`chaste-sbml --copy-base-classes`), so they always match the generator version. They are
 required by the generated code:
 
 | File | Purpose |
@@ -71,7 +77,8 @@ required by the generated code:
 | `AbstractSbmlSrnModel.{hpp,cpp}` | Base sub-cellular reaction network (SRN) model. |
 | `AbstractSbmlCellCycleModel.{hpp,cpp}` | Base cell-cycle model. |
 | `SbmlEventType.hpp` | Enum of SBML event types (e.g. cell division). |
-| `SbmlMath.{hpp,cpp}` | Math helper functions used by generated equations. |
+| `SbmlMath.hpp` | Math helper functions used by generated equations. |
+| `SbmlOdeSolverSetup.hpp` | ODE solver setup shared by the generated models. |
 | `fortests/SbmlTestHelpers.{hpp,cpp}` | Utility helpers for tests. |
 | `fortests/SbmlTestOdeSolution.{hpp,cpp}` | `OdeSolution` recording per-step parameters, for tests. |
 

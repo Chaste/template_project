@@ -27,11 +27,11 @@ fi
 
 # Install the SBML code generator from GitHub.
 "${VENV_DIR}/bin/pip" install --upgrade pip
-"${VENV_DIR}/bin/pip" install "git+https://github.com/Chaste/chaste-codegen-sbml@develop"
+"${VENV_DIR}/bin/pip" install "git+https://github.com/Chaste/chaste-sbml@develop"
 
 # Copy the C++ base classes the generated code depends on into the project's src/, so they
 # always match the installed version of the generator.
-"${VENV_DIR}/bin/chaste-sbml" copy-base-classes --output-dir "${PROJECT_ROOT}/src"
+"${VENV_DIR}/bin/chaste-sbml" --copy-base-classes --output-dir "${PROJECT_ROOT}/src"
 
 echo ""
 echo "Installed the SBML code generator into '${VENV_DIR}'."
