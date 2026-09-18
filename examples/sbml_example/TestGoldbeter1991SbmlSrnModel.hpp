@@ -15,7 +15,9 @@
 #include "TransitCellProliferativeType.hpp"
 #include "WildTypeCellMutationState.hpp"
 
-// The header generated from Goldbeter1991.xml by chaste-sbml.
+// The headers generated from Goldbeter1991.xml by chaste-sbml. The SRN model header
+// pulls in the ODE system header, but include it explicitly since we name it below.
+#include "Goldbeter1991SbmlOdeSystem.hpp"
 #include "Goldbeter1991SbmlSrnModel.hpp"
 
 // This is a serial test.
@@ -23,11 +25,10 @@
 
 namespace
 {
-// The model declares no time unit, so chaste-sbml assumes seconds (the SBML
-// Level 2 default) and scales the derivatives by this factor, because Chaste
-// integrates in hours. Keep in step with TIMESCALE_MULTIPLIER
-// in the generated Goldbeter1991SbmlOdeSystem.cpp.
-constexpr double TIMESCALE_MULTIPLIER = 3600.0; // Native time units per hour.
+// Native time units per hour. The model declares no time unit, so chaste-sbml
+// assumes seconds (the SBML Level 2 default) and scales the derivatives by this
+// factor, because Chaste integrates in hours.
+constexpr double TIMESCALE_MULTIPLIER = Goldbeter1991SbmlOdeSystem::TIMESCALE_MULTIPLIER;
 } // namespace
 
 class TestGoldbeter1991SbmlSrnModel : public AbstractCellBasedTestSuite

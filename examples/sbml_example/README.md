@@ -65,14 +65,17 @@ cp examples/sbml_example/TestGoldbeter1991SbmlSrnModel.hpp test/
 It builds a cell carrying the imported SRN model, runs it, and checks the behaviour of
 cyclin (`C`), active cdc2 kinase (`M`) and active cyclin protease (`X`).
 
-**Times are written in the model's native units.** Goldbeter 1991 declares no time unit,
-so `chaste-sbml` assumes seconds — the SBML Level 2 default — and scales the generated
-derivatives by 3600 because Chaste integrates in hours. The test mirrors that with a
-`TIMESCALE_MULTIPLIER` constant and divides its times by it, so `100.0 /
-TIMESCALE_MULTIPLIER` means 100 native units. Pass `--timescale ms|s|m|h` when generating
-if your model's real unit differs; whatever you choose, keep the test's constant in step
-with the one in the generated `...OdeSystem.cpp`.
+**Times are written in the model's native units.** Goldbeter 1991 declares no
+time unit, so `chaste-sbml` assumes seconds (the SBML Level 2 default) and
+scales the generated derivatives by 3600 because Chaste integrates in hours.
+The test divides its times by that factor, so `100.0 / TIMESCALE_MULTIPLIER`
+means 100 native units:
+
+```cpp
+constexpr double TIMESCALE_MULTIPLIER = Goldbeter1991SbmlOdeSystem::TIMESCALE_MULTIPLIER;
 ```
+
+> Pass `--timescale ms|s|m|h` when generating if your model's real unit differs.
 
 Then register the test by adding its file name to `test/ContinuousTestPack.txt`:
 
