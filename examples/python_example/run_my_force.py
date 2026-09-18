@@ -35,8 +35,10 @@ def main():
     generator = chaste.mesh.HoneycombMeshGenerator(5, 5)
     generating_mesh = generator.GetMesh()
 
+    cutoff_length = 1.5  # The distance at which cells interact.
+
     mesh = chaste.mesh.NodesOnlyMesh_2()
-    mesh.ConstructNodesWithoutMesh(generating_mesh, 1.5)
+    mesh.ConstructNodesWithoutMesh(generating_mesh, cutoff_length)
 
     transit_type = chaste.cell_based.TransitCellProliferativeType()
     cell_generator = chaste.cell_based.CellsGenerator["UniformCellCycleModel", "2"]()
@@ -50,11 +52,13 @@ def main():
     simulator.SetSamplingTimestepMultiple(12)
     simulator.SetEndTime(1.0)
 
-    # A standard spring force keeps neighbouring cells interacting...
-    spring_force = chaste.cell_based.LinearSpringForce_2_2()
+    # PathmanathanInteractionForce keeps neighbouring cells apart. Its repulsion is
+    # logarithmic and its attraction decays exponentially with separation.
+    spring_force = chaste.cell_based.PathmanathanInteractionForce_2_2()
+    spring_force.SetCutOffLength(cutoff_length)
     simulator.AddForce(spring_force)
 
-    # ...and our custom force from the project bindings pushes every cell in +x.
+    # Our custom force from the project bindings pushes every cell in +x.
     my_force = MyForce_2(1.0)
     simulator.AddForce(my_force)
 

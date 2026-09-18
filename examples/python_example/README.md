@@ -94,10 +94,12 @@ import myproject  # provides MyForce_2
 # The cell-cycle models need the simulation clock to exist before cells are created.
 chaste.cell_based.SimulationTime.Instance().SetStartTime(0.0)
 
-# Build a small node-based cell population.
+# Build a small node-based cell population. The same distance sets how far apart
+# cells interact and where the force below is cut off, so they must agree.
+cutoff_length = 1.5
 generator = chaste.mesh.HoneycombMeshGenerator(5, 5)
 mesh = chaste.mesh.NodesOnlyMesh_2()
-mesh.ConstructNodesWithoutMesh(generator.GetMesh(), 1.5)
+mesh.ConstructNodesWithoutMesh(generator.GetMesh(), cutoff_length)
 
 transit_type = chaste.cell_based.TransitCellProliferativeType()
 cell_generator = chaste.cell_based.CellsGenerator["UniformCellCycleModel", "2"]()
@@ -108,7 +110,9 @@ cell_population = chaste.cell_based.NodeBasedCellPopulation_2(mesh, cells)
 simulator = chaste.cell_based.OffLatticeSimulation_2_2(cell_population)
 simulator.SetOutputDirectory("Python/MyForce")
 simulator.SetEndTime(1.0)
-simulator.AddForce(chaste.cell_based.LinearSpringForce_2_2())
+spring_force = chaste.cell_based.PathmanathanInteractionForce_2_2()
+spring_force.SetCutOffLength(cutoff_length)
+simulator.AddForce(spring_force)
 simulator.AddForce(myproject.MyForce_2(1.0))  # <-- our new force, from C++
 simulator.Solve()
 ```
