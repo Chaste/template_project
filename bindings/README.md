@@ -1,0 +1,148 @@
+# Python bindings
+
+This template can build [PyChaste](https://chaste.github.io/) Python bindings for your
+project's C++ classes using [cppwg](https://github.com/Chaste/cppwg), so you can drive
+your project from Python. For a complete, worked example — writing a new C++ `Force` and
+using it in a Python simulation — see
+[example/README.md](example/README.md).
+
+Run every command below from your project's root directory. See the
+[top-level README](../README.md) for the project layout and the build cycle.
+
+## Prerequisites
+
+Building and installing the bindings needs, in addition to a Chaste source tree:
+
+* [cppwg](https://github.com/Chaste/cppwg) (with cross-module inheritance support — the
+  `imports` and `external_bases` config keys), used at configure time to generate the
+  wrappers, and
+* PyChaste's native runtime dependencies — `petsc4py`, `mpi4py` and `vtk` — importable from
+  the Python interpreter used to run your bindings.
+
+The latest [`chaste/base`](https://hub.docker.com/r/chaste/base) Docker image already provides all
+of these, and `bindings/scripts/install.sh` creates the project virtualenv with
+`--system-site-packages` so it can see them. Pull the latest image with `docker pull chaste/base`. If you are **not** working inside that image,
+`pip install` these dependencies into the system Python (or the project virtualenv) yourself
+before running configuration: `petsc4py`, `mpi4py`, and `vtk`, which all build against the versions of PETSc, MPI, and VTK on your system.
+
+## 1. Enable Python bindings
+
+When you run `setup_project.py`, answer **yes** to:
+
+```
+Do you want to create Python bindings for this project?
+```
+
+This keeps the binding scaffolding and wires it to your project name:
+
+* `bindings/config.yaml` — the cppwg configuration listing the classes to wrap,
+* `bindings/CMakeLists.txt` — builds the bindings as part of the project,
+* `bindings/package/` — the installable Python package (its `template_project/`
+  subdirectory is renamed to `<project_name>/`).
+
+If you answer no, the whole `bindings/` directory is removed — including this
+walkthrough's example — and the project is a plain C++ project.
+
+## 2. Configure and compile
+
+From the project directory (with `CHASTE_SOURCE_DIR` pointing at your Chaste source):
+
+```sh
+scripts/configure.sh   # registers the project and configures the Chaste build
+scripts/compile.sh     # builds the project, including the Python bindings
+```
+
+`configure.sh` automatically enables PyChaste when `bindings/config.yaml` is present.
+
+## 3. Install the bindings into the project virtualenv
+
+```sh
+bindings/scripts/install.sh
+```
+
+This creates a project virtualenv in `.virtualenv/` and installs both PyChaste and your
+project's bindings package into it.
+
+## 4. Activate the virtualenv and use your project from Python
+
+```sh
+source .virtualenv/bin/activate
+```
+
+```python
+import myproject                      # replace with your project name
+hello = myproject.Hello_myproject("Hello from Python!")
+print(hello.GetMessage())
+```
+
+## 5. Add your own C++ classes to the bindings
+
+To expose a new class, add it to `src/`, then add `- name: MyClass` under the
+`all` module's `classes:` in `bindings/config.yaml`.
+
+Then recompile (`scripts/compile.sh`) and reinstall (`bindings/scripts/install.sh`).
+
+If your class inherits from a Chaste class that is wrapped in PyChaste (for example a
+custom `AbstractForce` subclass), import PyChaste's compiled module under the `all`
+module's `imports:` and name the base class under `external_bases:` so cppwg can link the
+inheritance across modules:
+
+```yaml
+modules:
+  - name: all
+    imports:
+      - chaste._pychaste_all
+    external_bases:
+      - AbstractForce
+    classes:
+      - name: MyClass
+```
+
+> **Class names for templated classes.** `bindings/config.yaml` sets
+> `discover_template_instantiations: True`, so cppwg wraps the explicit instantiations
+> declared in your own `.cpp` files — write `template class MyClass<2>;` and you
+> get `MyClass_2`. The dimensions follow an underscore: a class templated over
+> `<unsigned DIM>` becomes `MyClass_2` / `MyClass_3`, and one templated over
+> `<ELEMENT_DIM, SPACE_DIM>` becomes `MyClass_2_2` / `MyClass_3_3`. If a class's
+> instantiations cannot be discovered this way — for example they are generated
+> by a macro — list them for that class with `template_substitutions` instead
+> (see https://chaste.github.io/cppwg/). If you are unsure of a generated name,
+> run `print([n for n in dir(myproject) if "MyClass" in n])`.
+
+See [example/README.md](example/README.md) for a full
+walkthrough of this process.
+
+## Troubleshooting the bindings
+
+**Wrapper generation fails during `scripts/configure.sh`.** cppwg runs at
+configure time, so an error in `bindings/config.yaml` (e.g. a misspelt class, a
+missing header, an unmatched template signature) fails the configure step
+immediately. The full cppwg output is written to `cppwg.log` in the project's
+build tree, at `${CHASTE_BUILD_DIR}/projects/<project_name>/bindings/cppwg.log`;
+read it to see which class or header caused the failure, fix `bindings/config.yaml`,
+and re-run `scripts/configure.sh`. Wrappers are regenerated on every configure,
+so your edits are always picked up.
+
+**Configure fails with "No Python wrapper sources were generated".** cppwg ran
+but produced no wrappers — usually because no classes under the `all` module
+actually matched (for example the header was not found on the include path, or
+every class name was misspelt). Check the `classes:` and `source_locations:`
+entries in `bindings/config.yaml` against `cppwg.log`, then re-configure.
+
+**Compilation fails with missing PyChaste or Chaste headers.** Make sure PyChaste
+is enabled (it is automatically when `bindings/config.yaml` is present) and that
+your Chaste source tree is built with PyChaste support. The project inherits its
+VTK, PETSc4Py and typecaster include paths from PyChaste's `chaste_pychaste`
+target, so a Chaste tree configured without PyChaste leaves them unset. To force
+a clean rebuild of just the wrappers, run `make <project_name>_wrappers` from the
+build directory, or run `scripts/clean.sh` followed by `scripts/configure.sh`.
+
+**`import myproject` fails at runtime**, typically with an error importing
+`petsc4py`, `mpi4py` or `vtk`. Those are PyChaste's native runtime dependencies
+and must be importable from the interpreter running your script — see
+[Prerequisites](#prerequisites). Activate the project virtualenv
+(`source .virtualenv/bin/activate`), which is created with `--system-site-packages`
+so it can see them, or install them yourself when working outside the `chaste/base`
+image.
+
+> See also https://chaste.github.io/pychaste/dev-guide/
