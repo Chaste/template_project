@@ -30,8 +30,9 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # CPPWG configuration for template_project Python bindings.
-# See https://chaste.github.io/cppwg/ for documentation, and Chaste/pychaste/dynamic/config.yaml
-# for a large worked example. Add classes here as you add them to your project.
+# See https://chaste.github.io/cppwg/ for documentation, and the Chaste tree's own
+# pychaste/dynamic/config.yaml for a large worked example. Add classes here as you add
+# them to your project.
 
 name: template_project
 
@@ -75,6 +76,9 @@ discover_arg_excludes:
 
 modules:
   - name: all
+    # Where cppwg looks for the classes named below. If a header basename appears in more
+    # than one scanned location the last match wins, ordered by path, so keep wrapped
+    # headers in src/ rather than adding a location that sorts after it.
     source_locations:
       - src/
     classes:

@@ -27,7 +27,7 @@ C++-friendly name. Here we use `Goldbeter1991`.
 A copy of the model is included next to this walkthrough, so just copy it in:
 
 ```sh
-cp examples/sbml_example/Goldbeter1991.xml .
+cp sbml/example/Goldbeter1991.xml .
 ```
 
 Alternatively, download it from BioModels and rename it yourself (this needs network
@@ -59,7 +59,7 @@ A ready-made test lives next to this walkthrough at
 your `test/` directory:
 
 ```sh
-cp examples/sbml_example/TestGoldbeter1991SbmlSrnModel.hpp test/
+cp sbml/example/TestGoldbeter1991SbmlSrnModel.hpp test/
 ```
 
 It builds a cell carrying the imported SRN model, runs it, and checks the behaviour of

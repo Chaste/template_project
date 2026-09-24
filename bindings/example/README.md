@@ -5,8 +5,8 @@ project's Python bindings, and then uses it in a [PyChaste](https://chaste.githu
 simulation driven from Python.
 
 It assumes you have already created your project from this template and answered **yes** to
-the Python bindings prompt and **yes** to the cell-based prompt in `setup_project.py`, so that `dynamic/config.yaml`,
-`dynamic/CMakeLists.txt` and `src/py/` are present.
+the Python bindings prompt and **yes** to the cell-based prompt in `setup_project.py`, so that `bindings/config.yaml`,
+`bindings/CMakeLists.txt` and `bindings/package/` are present.
 
 Run every command below from your project's root directory, and replace `myproject` with
 your project's name throughout.
@@ -16,7 +16,7 @@ your project's name throughout.
 Copy the example force class into your project's `src/` directory:
 
 ```sh
-cp examples/python_example/MyForce.hpp examples/python_example/MyForce.cpp src/
+cp bindings/example/MyForce.hpp bindings/example/MyForce.cpp src/
 ```
 
 [`MyForce`](MyForce.hpp) is templated over the spatial dimension and subclasses
@@ -26,7 +26,7 @@ only job is to demonstrate the C++ → Python workflow.
 
 ## 2. Expose the force to the Python bindings
 
-Tell cppwg to wrap the new class by editing `dynamic/config.yaml`. Under the
+Tell cppwg to wrap the new class by editing `bindings/config.yaml`. Under the
 `all` module, add the `MyForce` to `classes:`, then tell cppwg that
 `AbstractForce` is wrapped in PyChaste by adding the `chaste._pychaste_all`
 module under `imports:` and listing `AbstractForce` under `external_bases`:
@@ -67,7 +67,7 @@ With `CHASTE_SOURCE_DIR` pointing at your Chaste source:
 ```sh
 scripts/configure.sh         # only needed the first time
 scripts/compile.sh           # rebuilds the project and its bindings
-scripts/bindings_install.sh  # installs PyChaste + your project into .virtualenv/
+bindings/scripts/install.sh  # installs PyChaste + your project into .virtualenv/
 ```
 
 ## 4. Activate the virtualenv
@@ -120,7 +120,7 @@ simulator.Solve()
 Edit the `import myproject` line to your project name, then run it:
 
 ```sh
-python examples/python_example/run_my_force.py
+python bindings/example/run_my_force.py
 ```
 
 You should see the simulation run to completion and print the number of cells. The custom
@@ -129,14 +129,14 @@ confirming that your new C++ class is callable from Python.
 
 > If `myproject.MyForce_2` is not found, list the generated names with
 > `print([n for n in dir(myproject) if "MyForce" in n])` — the dimension suffix depends on
-> how the class is templated (see the note in the top-level README).
+> how the class is templated (see the note in the [bindings README](../README.md)).
 
 ## Troubleshooting
-See the main [README](../../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.
+See the [bindings README](../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.
 
 ## Next steps
 
 * Give `MyForce` more parameters or a different `AddForceContribution()` and rebuild.
-* Add more of your own classes to `dynamic/config.yaml` the same way.
+* Add more of your own classes to `bindings/config.yaml` the same way.
 * See the [PyChaste tutorials](https://chaste.github.io/pychaste/tutorials/) for more
   complete cell-based simulations.

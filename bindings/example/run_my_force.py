@@ -4,7 +4,7 @@ Before running this, build and install your project's Python bindings (see the R
 this directory), then activate the virtualenv:
 
     source .virtualenv/bin/activate
-    python examples/python_example/run_my_force.py
+    python bindings/example/run_my_force.py
 
 Replace ``myproject`` below with your project's name.
 """
