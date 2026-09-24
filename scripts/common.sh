@@ -46,7 +46,7 @@ PROJECT_NAME="$(basename "${PROJECT_ROOT}")"
 
 Chaste_UPDATE_PROVENANCE="${Chaste_UPDATE_PROVENANCE:-OFF}"
 
-if [[ -f "${PROJECT_ROOT}/dynamic/config.yaml" ]]; then
+if [[ -f "${PROJECT_ROOT}/bindings/config.yaml" ]]; then
 	# Enable pychaste if this project has Python bindings set up.
 	Chaste_ENABLE_PYCHASTE=ON
 	BUILD_PROJECT_PYTHON_BINDINGS=ON

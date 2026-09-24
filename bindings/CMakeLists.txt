@@ -117,7 +117,7 @@ file(GLOB_RECURSE WRAPPER_SOURCES CONFIGURE_DEPENDS
 if(NOT WRAPPER_SOURCES)
     message(FATAL_ERROR
         "No Python wrapper sources were generated for the project. "
-        "Check the classes listed in dynamic/config.yaml and the cppwg log at: "
+        "Check the classes listed in bindings/config.yaml and the cppwg log at: "
         "  ${CMAKE_CURRENT_BINARY_DIR}/cppwg.log")
 endif()
 
@@ -154,14 +154,14 @@ add_dependencies(project_template_project _template_project_all)
 
 file(GLOB_RECURSE _py_sources
     CONFIGURE_DEPENDS
-    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/../src/py
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/*
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/package
+    ${CMAKE_CURRENT_SOURCE_DIR}/package/*
 )
 list(FILTER _py_sources EXCLUDE REGEX "\\.(dll|dylib|pyc|so)$")
 
 foreach(_src ${_py_sources})
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/py/${_src}
+        ${CMAKE_CURRENT_SOURCE_DIR}/package/${_src}
         ${CMAKE_CURRENT_BINARY_DIR}/package/${_src}
         COPYONLY
     )

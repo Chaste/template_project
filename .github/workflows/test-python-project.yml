@@ -14,7 +14,7 @@ jobs:
   test-python-project:
     # Two configurations:
     #  - default-components: the python wrapper template exactly as shipped.
-    #  - force-example: the python_example walkthrough.
+    #  - force-example: the bindings/example walkthrough.
     name: ${{ matrix.variant }}
     runs-on: ubuntu-latest
 
@@ -60,18 +60,18 @@ jobs:
         if: matrix.variant == 'force-example'
         run: |
           cd ${{ env.PROJECT_DIR }}
-          cp examples/python_example/MyForce.hpp examples/python_example/MyForce.cpp src/
-          sed -i.bak 's/^    classes:$/&\n      - name: MyForce/' dynamic/config.yaml
+          cp bindings/example/MyForce.hpp bindings/example/MyForce.cpp src/
+          sed -i.bak 's/^    classes:$/&\n      - name: MyForce/' bindings/config.yaml
           # Import PyChaste's module and declare AbstractForce as an external base
-          sed -i.bak 's/^  - name: all$/&\n    imports:/' dynamic/config.yaml
-          sed -i.bak 's/^    imports:$/&\n      - chaste._pychaste_all/' dynamic/config.yaml
-          sed -i.bak 's/^      - chaste._pychaste_all$/&\n    external_bases:/' dynamic/config.yaml
-          sed -i.bak 's/^    external_bases:$/&\n      - AbstractForce/' dynamic/config.yaml
+          sed -i.bak 's/^  - name: all$/&\n    imports:/' bindings/config.yaml
+          sed -i.bak 's/^    imports:$/&\n      - chaste._pychaste_all/' bindings/config.yaml
+          sed -i.bak 's/^      - chaste._pychaste_all$/&\n    external_bases:/' bindings/config.yaml
+          sed -i.bak 's/^    external_bases:$/&\n      - AbstractForce/' bindings/config.yaml
           # The seds above anchor on the shipped formatting of config.yaml; fail loudly
           # here rather than later with a confusing "MyForce_2 not found" at runtime.
-          grep -q '^      - name: MyForce$' dynamic/config.yaml
-          grep -q '^      - chaste._pychaste_all$' dynamic/config.yaml
-          grep -q '^      - AbstractForce$' dynamic/config.yaml
+          grep -q '^      - name: MyForce$' bindings/config.yaml
+          grep -q '^      - chaste._pychaste_all$' bindings/config.yaml
+          grep -q '^      - AbstractForce$' bindings/config.yaml
 
       - name: Configure
         run: ${{ env.PROJECT_DIR }}/scripts/configure.sh
@@ -80,7 +80,7 @@ jobs:
         run: ${{ env.PROJECT_DIR }}/scripts/compile.sh
 
       - name: Install
-        run: ${{ env.PROJECT_DIR }}/scripts/bindings_install.sh
+        run: ${{ env.PROJECT_DIR }}/bindings/scripts/install.sh
 
       - name: Test Python bindings
         run: |
@@ -95,4 +95,4 @@ jobs:
 
       - name: Run the MyForce simulation from Python
         if: matrix.variant == 'force-example'
-        run: ${{ env.PROJECT_DIR }}/.virtualenv/bin/python ${{ env.PROJECT_DIR }}/examples/python_example/run_my_force.py
+        run: ${{ env.PROJECT_DIR }}/.virtualenv/bin/python ${{ env.PROJECT_DIR }}/bindings/example/run_my_force.py

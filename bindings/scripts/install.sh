@@ -7,12 +7,13 @@ if [[ $# -ne 0 ]]; then
 	exit 1
 fi
 
-# Import common variables and helpers.
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "${script_dir}/common.sh"
+# Import common variables and helpers. This script lives one level deeper than the
+# shared scripts, in <project>/bindings/scripts, so reach back up to <project>/scripts.
+_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "${_here}/scripts/common.sh"
 
 # Abort if Python bindings are not set up for this project.
-if [[ ! -f "${PROJECT_ROOT}/dynamic/config.yaml" ]]; then
+if [[ ! -f "${PROJECT_ROOT}/bindings/config.yaml" ]]; then
 	echo "Error: Python bindings are not set up for this project." >&2
 	echo "Run setup_project.py with Python bindings enabled." >&2
 	exit 1
@@ -22,7 +23,7 @@ require_command python3
 require_configured
 
 # Check that the project's Python bindings have been compiled.
-project_pkg="${CHASTE_BUILD_DIR}/projects/${PROJECT_NAME}/dynamic/package"
+project_pkg="${CHASTE_BUILD_DIR}/projects/${PROJECT_NAME}/bindings/package"
 if [[ ! -d "${project_pkg}" ]]; then
 	echo "Error: Python bindings package not found at '${project_pkg}'." >&2
 	echo "Run compile.sh first." >&2

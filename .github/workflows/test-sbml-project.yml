@@ -44,14 +44,14 @@ jobs:
           printf '\n\n\n\n\n\ny\ny\n' | python3 setup_project.py
 
       - name: Install SBML code generator
-        run: ${{ env.PROJECT_DIR }}/scripts/sbml_install.sh
+        run: ${{ env.PROJECT_DIR }}/sbml/scripts/install.sh
 
       - name: Import the Goldbeter 1991 model
         run: |
           cd ${{ env.PROJECT_DIR }}
-          cp examples/sbml_example/Goldbeter1991.xml .
+          cp sbml/example/Goldbeter1991.xml .
           .virtualenv/bin/chaste-sbml Goldbeter1991.xml --model-type srn --output-dir src/
-          cp examples/sbml_example/TestGoldbeter1991SbmlSrnModel.hpp test/
+          cp sbml/example/TestGoldbeter1991SbmlSrnModel.hpp test/
           echo "TestGoldbeter1991SbmlSrnModel.hpp" >> test/ContinuousTestPack.txt
 
       - name: Configure

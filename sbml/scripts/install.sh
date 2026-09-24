@@ -9,9 +9,10 @@ if [[ $# -ne 0 ]]; then
 	exit 1
 fi
 
-# Import common variables and helpers.
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "${script_dir}/common.sh"
+# Import common variables and helpers. This script lives one level deeper than the
+# shared scripts, in <project>/sbml/scripts, so reach back up to <project>/scripts.
+_here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "${_here}/scripts/common.sh"
 
 require_command python3
 

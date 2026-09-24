@@ -83,13 +83,18 @@ class Settings:
 
         self.TEST_PACK_FILES = [os.path.join(self.PROJECT_ROOT, "test", "ContinuousTestPack.txt")]
 
+        # Everything belonging to a capability lives in one directory, so declining it is a
+        # single rmtree and a reader can see at a glance which files are optional.
+        self.BINDINGS_DIR = os.path.join(self.PROJECT_ROOT, "bindings")
+        self.SBML_DIR = os.path.join(self.PROJECT_ROOT, "sbml")
+
         # Python binding template files (substituted if Python bindings opted in, deleted otherwise).
         self.PYTHON_BINDING_FILES = [
-            os.path.join(self.PROJECT_ROOT, "dynamic", "config.yaml"),
-            os.path.join(self.PROJECT_ROOT, "dynamic", "CMakeLists.txt"),
-            os.path.join(self.PROJECT_ROOT, "src", "py", "MANIFEST.in"),
-            os.path.join(self.PROJECT_ROOT, "src", "py", "setup.cfg"),
-            os.path.join(self.PROJECT_ROOT, "src", "py", "template_project", "__init__.py"),
+            os.path.join(self.BINDINGS_DIR, "config.yaml"),
+            os.path.join(self.BINDINGS_DIR, "CMakeLists.txt"),
+            os.path.join(self.BINDINGS_DIR, "package", "MANIFEST.in"),
+            os.path.join(self.BINDINGS_DIR, "package", "setup.cfg"),
+            os.path.join(self.BINDINGS_DIR, "package", "template_project", "__init__.py"),
         ]
 
         # Substitutions applied to all Python binding files.
@@ -97,13 +102,13 @@ class Settings:
             "template_project": self.PROJECT_NAME,
         }
 
-        # Additional substitutions applied only to dynamic/config.yaml.
+        # Additional substitutions applied only to bindings/config.yaml.
         self.PYTHON_CONFIG_SUBSTITUTIONS = {
             "name: Hello": f"name: Hello_{self.PROJECT_NAME}",
         }
 
         # Python package template directory (renamed to <project_name>/ during setup).
-        self.PYTHON_PKG_TEMPLATE_DIR = os.path.join(self.PROJECT_ROOT, "src", "py", "template_project")
+        self.PYTHON_PKG_TEMPLATE_DIR = os.path.join(self.BINDINGS_DIR, "package", "template_project")
 
         # The project virtualenv and the script that creates it (shared by the bindings and SBML paths).
         # Keep VENV_DIR in sync with VENV_DIR in scripts/common.sh, which defines it independently.
@@ -112,7 +117,7 @@ class Settings:
 
         # The script that creates the project virtualenv, installs the SBML code generator,
         # and copies the SBML base classes into src/ (via chaste-sbml --copy-base-classes).
-        self.SBML_INSTALL_SCRIPT = os.path.join(self.PROJECT_ROOT, "scripts", "sbml_install.sh")
+        self.SBML_INSTALL_SCRIPT = os.path.join(self.SBML_DIR, "scripts", "install.sh")
 
 
 def find_and_replace(filename: str, old_string: str, new_string: str) -> None:
@@ -208,7 +213,7 @@ def warn_missing_pychaste_deps(settings: Settings) -> None:
 def install_sbml_codegen(settings: Settings) -> None:
     """Create the project virtualenv and set up SBML support in it.
 
-    Creates the shared virtualenv via create_virtualenv(), then runs scripts/sbml_install.sh
+    Creates the shared virtualenv via create_virtualenv(), then runs sbml/scripts/install.sh
     to install the code generator and copy the SBML base classes into src/. On any failure
     this is non-fatal: it prints the manual commands so the user can finish the install
     themselves.
@@ -326,24 +331,26 @@ def setup(settings: Settings) -> None:
             for old, new in settings.PYTHON_BINDING_SUBSTITUTIONS.items():
                 find_and_replace(file, old, new)
         # Substitute class names and headers into config.yaml
-        config_yaml = os.path.join(settings.PROJECT_ROOT, "dynamic", "config.yaml")
+        config_yaml = os.path.join(settings.BINDINGS_DIR, "config.yaml")
         for old, new in settings.PYTHON_CONFIG_SUBSTITUTIONS.items():
             find_and_replace(config_yaml, old, new)
         # Rename the Python package directory (template_project/ -> <project_name>/)
-        new_pkg_dir = os.path.join(settings.PROJECT_ROOT, "src", "py", settings.PROJECT_NAME)
+        new_pkg_dir = os.path.join(settings.BINDINGS_DIR, "package", settings.PROJECT_NAME)
         os.rename(settings.PYTHON_PKG_TEMPLATE_DIR, new_pkg_dir)
         # Create the project virtualenv (the compiled bindings are installed later
-        # by scripts/bindings_install.sh).
+        # by bindings/scripts/install.sh).
         if create_virtualenv(settings):
             warn_missing_pychaste_deps(settings)
     else:
-        # Remove the Python binding template files
-        shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "dynamic"))
-        shutil.rmtree(os.path.join(settings.PROJECT_ROOT, "src", "py"))
+        # Remove the whole bindings directory: its example and install script are only
+        # meaningful with bindings enabled.
+        shutil.rmtree(settings.BINDINGS_DIR)
 
     # Set up SBML support: install the code generator and copy the base classes into src/.
     if sbml:
         install_sbml_codegen(settings)
+    else:
+        shutil.rmtree(settings.SBML_DIR)
 
     # Summarise the changes that were made
     print("")
@@ -359,14 +366,16 @@ def setup(settings: Settings) -> None:
         print(f"  - {os.path.basename(original)} -> {os.path.basename(renamed)}")
 
     if python_bindings:
-        print("* Set up Python bindings in dynamic/ and src/py/.")
+        print("* Set up Python bindings in bindings/.")
         print("* Created the project virtualenv in .virtualenv/.")
     else:
-        print("* Removed Python bindings template files in dynamic/ and src/py/.")
+        print("* Removed the Python bindings scaffolding in bindings/.")
 
     if sbml:
         print("* Installed the SBML code generator into .virtualenv and copied the SBML base classes into src/.")
-        print("  See the README and examples/sbml_example/ for how to import an SBML model.")
+        print("  See sbml/README.md and sbml/example/ for how to import an SBML model.")
+    else:
+        print("* Removed the SBML scaffolding in sbml/.")
 
 
 def main() -> None:
