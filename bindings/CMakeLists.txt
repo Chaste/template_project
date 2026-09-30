@@ -40,7 +40,7 @@ endif()
 # Get includes from the project's chaste target
 get_target_property(PROJECT_INCLUDE_DIRS chaste_project_template_project INCLUDE_DIRECTORIES)
 
-# Inherit the include configuration that pychaste exposes for
+# Inherit the include configuration that PyChaste exposes for
 # VTK, PETSc4Py and the pybind11 typecasters.
 get_target_property(PYCHASTE_INTERFACE_INCLUDE_DIRS chaste_pychaste INTERFACE_INCLUDE_DIRECTORIES)
 if(NOT PYCHASTE_INTERFACE_INCLUDE_DIRS)
@@ -85,7 +85,7 @@ set(WRAPPER_GENERATION_COMMAND
         --castxml_compiler ${Chaste_CASTXML_COMPILER}
 )
 
-# Generate wrappers. Unlike pychaste, which generates once, a user project
+# Generate wrappers. Unlike PyChaste, which generates once, a user project
 # regenerates on every configure so that edits to config.yaml and to the
 # project's own classes are picked up.
 execute_process(

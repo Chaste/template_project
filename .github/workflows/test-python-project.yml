@@ -80,7 +80,7 @@ jobs:
         run: ${{ env.PROJECT_DIR }}/scripts/compile.sh
 
       - name: Install
-        run: ${{ env.PROJECT_DIR }}/bindings/scripts/install.sh
+        run: ${{ env.PROJECT_DIR }}/bindings/install.sh
 
       - name: Test Python bindings
         run: |

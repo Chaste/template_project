@@ -68,7 +68,7 @@ With `CHASTE_SOURCE_DIR` pointing at your Chaste source:
 ```sh
 scripts/configure.sh         # only needed the first time
 scripts/compile.sh           # rebuilds the project and its bindings
-bindings/scripts/install.sh  # installs PyChaste + your project into .virtualenv/
+bindings/install.sh  # installs PyChaste + your project into .virtualenv/
 ```
 
 

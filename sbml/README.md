@@ -22,8 +22,8 @@ Do you want to create an SBML user project?
 source .virtualenv/bin/activate
 ```
 
-(If you ever need to (re)install the generator or refresh the base classes by hand, run
-`sbml/scripts/install.sh`.)
+(If you ever need to (re)install chaste-sbml or refresh the base classes by hand, run
+`sbml/install.sh`.)
 
 ## 3. Convert an SBML model into a Chaste model
 
@@ -40,7 +40,7 @@ chaste-sbml my_model.xml --model-type srn --output-dir src/
 * `--tests` writes a placeholder CxxTest skeleton `Test<Name>.hpp` next to the model, and
   `--no-tests` suppresses it. Use `--test-output-dir test/` to put a generated
   placeholder somewhere sensible instead (it implies `--tests`).
-* `--timescale ms|s|m|h` sets the model's native time unit, which the generator converts
+* `--timescale ms|s|m|h` sets the model's native time unit, which chaste-sbml converts
   to Chaste's hours. Omit it to auto-detect from the SBML.
 
 ## 4. Write a test
@@ -61,7 +61,7 @@ scripts/test.sh        # run the project's tests
 ## The SBML base classes
 
 `setup_project.py` copies these into `src/` from the installed `chaste-sbml` package (via
-`chaste-sbml --copy-base-classes`), so they always match the generator version. They are
+`chaste-sbml --copy-base-classes`), so they always match the installed version. They are
 required by the generated code:
 
 | File | Purpose |

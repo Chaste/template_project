@@ -20,7 +20,7 @@ Building and installing the bindings needs, in addition to a Chaste source tree:
   the Python interpreter used to run your bindings.
 
 The latest [`chaste/base`](https://hub.docker.com/r/chaste/base) Docker image already provides all
-of these, and `bindings/scripts/install.sh` creates the project virtualenv with
+of these, and `bindings/install.sh` creates the project virtualenv with
 `--system-site-packages` so it can see them. Pull the latest image with `docker pull chaste/base`. If you are **not** working inside that image,
 `pip install` these dependencies into the system Python (or the project virtualenv) yourself
 before running configuration: `petsc4py`, `mpi4py`, and `vtk`, which all build against the versions of PETSc, MPI, and VTK on your system.
@@ -57,7 +57,7 @@ scripts/compile.sh     # builds the project, including the Python bindings
 ## 3. Install the bindings into the project virtualenv
 
 ```sh
-bindings/scripts/install.sh
+bindings/install.sh
 ```
 
 This creates a project virtualenv in `.virtualenv/` and installs both PyChaste and your
@@ -80,7 +80,7 @@ print(hello.GetMessage())
 To expose a new class, add it to `src/`, then add `- name: MyClass` under the
 `all` module's `classes:` in `bindings/config.yaml`.
 
-Then recompile (`scripts/compile.sh`) and reinstall (`bindings/scripts/install.sh`).
+Then recompile (`scripts/compile.sh`) and reinstall (`bindings/install.sh`).
 
 If your class inherits from a Chaste class that is wrapped in PyChaste (for example a
 custom `AbstractForce` subclass), import PyChaste's compiled module under the `all`
@@ -135,7 +135,8 @@ your Chaste source tree is built with PyChaste support. The project inherits its
 VTK, PETSc4Py and typecaster include paths from PyChaste's `chaste_pychaste`
 target, so a Chaste tree configured without PyChaste leaves them unset. To force
 a clean rebuild of just the wrappers, run `make <project_name>_wrappers` from the
-build directory, or run `scripts/clean.sh` followed by `scripts/configure.sh`.
+build directory, or delete the build directory (`$CHASTE_BUILD_DIR`, by default
+`build/` in the project) and re-run `scripts/configure.sh`.
 
 **`import myproject` fails at runtime**, typically with an error importing
 `petsc4py`, `mpi4py` or `vtk`. Those are PyChaste's native runtime dependencies

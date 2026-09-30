@@ -43,8 +43,8 @@ jobs:
           # Prompt defaults for proceed/components/no-python-bindings, yes to SBML, yes to confirm
           printf '\n\n\n\n\n\ny\ny\n' | python3 setup_project.py
 
-      - name: Install SBML code generator
-        run: ${{ env.PROJECT_DIR }}/sbml/scripts/install.sh
+      - name: Install chaste-sbml
+        run: ${{ env.PROJECT_DIR }}/sbml/install.sh
 
       - name: Import the Goldbeter 1991 model
         run: |
