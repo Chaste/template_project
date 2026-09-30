@@ -83,12 +83,11 @@ class Settings:
 
         self.TEST_PACK_FILES = [os.path.join(self.PROJECT_ROOT, "test", "ContinuousTestPack.txt")]
 
-        # Everything belonging to a capability lives in one directory, so declining it is a
-        # single rmtree and a reader can see at a glance which files are optional.
+        # SBML and Python bindings capabilities live in separate directories.
         self.BINDINGS_DIR = os.path.join(self.PROJECT_ROOT, "bindings")
         self.SBML_DIR = os.path.join(self.PROJECT_ROOT, "sbml")
 
-        # Python binding template files (substituted if Python bindings opted in, deleted otherwise).
+        # Python binding template files.
         self.PYTHON_BINDING_FILES = [
             os.path.join(self.BINDINGS_DIR, "config.yaml"),
             os.path.join(self.BINDINGS_DIR, "CMakeLists.txt"),
@@ -110,8 +109,7 @@ class Settings:
         # Python package template directory (renamed to <project_name>/ during setup).
         self.PYTHON_PKG_TEMPLATE_DIR = os.path.join(self.BINDINGS_DIR, "package", "template_project")
 
-        # The script that creates the project virtualenv, installs chaste-sbml,
-        # and copies the SBML base classes into src/ (via chaste-sbml --copy-base-classes).
+        # The SBML install script for chaste-sbml, used to set up SBML support.
         self.SBML_INSTALL_SCRIPT = os.path.join(self.SBML_DIR, "install.sh")
 
 
@@ -168,7 +166,36 @@ def print_banner(*lines: str) -> None:
     print(border)
 
 
-def install_chaste_sbml(settings: Settings) -> None:
+def setup_bindings(settings: Settings) -> None:
+    """Wire the Python bindings scaffolding in bindings/ to this project's name."""
+    # Substitute the project name into all Python binding files
+    for file in settings.PYTHON_BINDING_FILES:
+        for old, new in settings.PYTHON_BINDING_SUBSTITUTIONS.items():
+            find_and_replace(file, old, new)
+
+    # Substitute class names and headers into config.yaml
+    config_yaml = os.path.join(settings.BINDINGS_DIR, "config.yaml")
+    for old, new in settings.PYTHON_CONFIG_SUBSTITUTIONS.items():
+        find_and_replace(config_yaml, old, new)
+
+    # Rename the Python package directory (template_project/ -> <project_name>/)
+    new_pkg_dir = os.path.join(settings.BINDINGS_DIR, "package", settings.PROJECT_NAME)
+    os.rename(settings.PYTHON_PKG_TEMPLATE_DIR, new_pkg_dir)
+
+    # The virtualenv is created later, by bindings/install.sh, once there is a
+    # compiled package to install into it.
+
+
+def remove_bindings(settings: Settings) -> None:
+    """Remove the whole bindings directory.
+
+    Its example and install script are only meaningful with bindings enabled, so a
+    project that declines them keeps none of it.
+    """
+    shutil.rmtree(settings.BINDINGS_DIR)
+
+
+def setup_sbml(settings: Settings) -> None:
     """Set up SBML support by running sbml/install.sh.
 
     The script creates the project virtualenv if needed, installs chaste-sbml into it,
@@ -182,6 +209,11 @@ def install_chaste_sbml(settings: Settings) -> None:
         print(f"WARNING: could not set up SBML support automatically ({error}).")
         print("Set it up manually by re-running:")
         print(f"  {settings.SBML_INSTALL_SCRIPT}")
+
+
+def remove_sbml(settings: Settings) -> None:
+    """Remove the whole sbml directory, as for the bindings."""
+    shutil.rmtree(settings.SBML_DIR)
 
 
 def is_setup(settings: Settings) -> bool:
@@ -275,31 +307,16 @@ def setup(settings: Settings) -> None:
     if components:
         find_and_replace(settings.BASE_CMAKELISTS, " ".join(settings.DEFAULT_COMPONENTS), " ".join(components))
 
-    # Set up or remove Python bindings
+    # Apply each optional capability, or remove its directory entirely.
     if python_bindings:
-        # Substitute the project name into all Python binding files
-        for file in settings.PYTHON_BINDING_FILES:
-            for old, new in settings.PYTHON_BINDING_SUBSTITUTIONS.items():
-                find_and_replace(file, old, new)
-        # Substitute class names and headers into config.yaml
-        config_yaml = os.path.join(settings.BINDINGS_DIR, "config.yaml")
-        for old, new in settings.PYTHON_CONFIG_SUBSTITUTIONS.items():
-            find_and_replace(config_yaml, old, new)
-        # Rename the Python package directory (template_project/ -> <project_name>/)
-        new_pkg_dir = os.path.join(settings.BINDINGS_DIR, "package", settings.PROJECT_NAME)
-        os.rename(settings.PYTHON_PKG_TEMPLATE_DIR, new_pkg_dir)
-        # The virtualenv is created later, by bindings/install.sh, once there is a
-        # compiled package to install into it.
+        setup_bindings(settings)
     else:
-        # Remove the whole bindings directory: its example and install script are only
-        # meaningful with bindings enabled.
-        shutil.rmtree(settings.BINDINGS_DIR)
+        remove_bindings(settings)
 
-    # Set up SBML support: install chaste-sbml and copy the base classes into src/.
     if sbml:
-        install_chaste_sbml(settings)
+        setup_sbml(settings)
     else:
-        shutil.rmtree(settings.SBML_DIR)
+        remove_sbml(settings)
 
     # Summarise the changes that were made
     print("")
