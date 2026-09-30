@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Run this project's tests.
+#
+# Usage: test.sh
+#
+# Run after compile.sh. Runs the tests labelled for this project with NCORES
+# parallel cores. Simulation output is written to ${CHASTE_TEST_OUTPUT}.
+
 # Abort if number of arguments is incorrect.
 if [[ $# -ne 0 ]]; then
 	echo "Usage: $(basename "$0")" >&2

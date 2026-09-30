@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Build this project's library, apps and tests.
+#
+# Usage: compile.sh
+#
+# Run after configure.sh. Builds with NCORES parallel jobs.
+
 # Abort if number of arguments is incorrect.
 if [[ $# -ne 0 ]]; then
 	echo "Usage: $(basename "$0")" >&2

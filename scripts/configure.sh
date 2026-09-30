@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Configure the Chaste build for this project.
+#
+# Usage: configure.sh
+#
+# Symlinks the project into ${CHASTE_SOURCE_DIR}/projects, where Chaste looks for
+# user projects, then runs cmake in ${CHASTE_BUILD_DIR}. With Python bindings
+# enabled the cppwg wrappers are generated here too, so re-run this after editing
+# bindings/config.yaml.
+
 # Abort if number of arguments is incorrect.
 if [[ $# -ne 0 ]]; then
 	echo "Usage: $(basename "$0")" >&2

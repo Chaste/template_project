@@ -1,7 +1,7 @@
 # Bindings Example: a new C++ Force used from Python
 
 This example adds a new C++ cell-based `Force` to your project, exposes it through the
-project's Python bindings, and then uses it in a [PyChaste](https://chaste.github.io/)
+project's Python bindings, and then uses it in a [PyChaste](https://chaste.github.io/pychaste/)
 simulation driven from Python.
 
 It assumes you have already created your project from this template and answered **yes** to
@@ -42,7 +42,7 @@ modules:
     source_locations:
       - src/
     classes:
-      - name: Hello_ProjectName
+      - name: Hello_myproject
       - name: MyForce #<-- new
 ```
 
@@ -66,9 +66,9 @@ picks up the explicit instantiations at the bottom of [`MyForce.cpp`](MyForce.cp
 With `CHASTE_SOURCE_DIR` pointing at your Chaste source:
 
 ```sh
-scripts/configure.sh         # only needed the first time
-scripts/compile.sh           # rebuilds the project and its bindings
-bindings/install.sh  # installs PyChaste + your project into .virtualenv/
+scripts/configure.sh  # configure the build and generate the Python bindings
+scripts/compile.sh    # rebuild the project and its bindings
+bindings/install.sh   # install PyChaste + your project into .virtualenv/
 ```
 
 
@@ -130,7 +130,7 @@ confirming that your new C++ class is callable from Python.
 
 > If `myproject.MyForce_2` is not found, list the generated names with
 > `print([n for n in dir(myproject) if "MyForce" in n])`. The dimension suffix depends on
-> how the class is templated (see the note in the [bindings README](../README.md)).
+> how the class is templated (see the [cppwg docs](https://chaste.github.io/cppwg/templates.html)).
 
 ## Troubleshooting
 See the [bindings README](../README.md#troubleshooting-the-bindings) for steps to fix problems with adding Python bindings.

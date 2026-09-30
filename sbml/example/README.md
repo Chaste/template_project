@@ -87,7 +87,7 @@ TestGoldbeter1991SbmlSrnModel.hpp
 With `CHASTE_SOURCE_DIR` pointing at your Chaste source tree:
 
 ```sh
-scripts/configure.sh   # register the project and configure the Chaste build
+scripts/configure.sh   # configure the build
 scripts/compile.sh     # build the project (including the generated model)
 scripts/test.sh        # run the project's tests
 ```

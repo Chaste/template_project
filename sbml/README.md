@@ -19,7 +19,7 @@ Do you want to create an SBML user project?
 ## Convert an SBML model into a Chaste model
 
 > If you ever need to re-install chaste-sbml or refresh the SBML base classes, run
-`sbml/install.sh`. This is already run during user project setup by `setup_project.py`.
+> `sbml/install.sh`. This is already run during user project setup by `setup_project.py`.
 
 Activate the virtualenv
 
@@ -57,7 +57,7 @@ scripts/test.sh        # run the project's tests
 
 ## The SBML base classes
 
-`setup_project.py` copies these into `src/` from the installed `chaste-sbml` package (via
+`sbml/install.sh` copies these into `src/` from the installed `chaste-sbml` package (via
 `chaste-sbml --copy-base-classes`). They are
 required by the generated code:
 

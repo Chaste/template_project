@@ -1,6 +1,6 @@
 # Python bindings
 
-This template builds [PyChaste](https://chaste.github.io/) Python bindings for your
+This template builds [PyChaste](https://chaste.github.io/pychaste/) Python bindings for your
 project's C++ classes using [cppwg](https://github.com/Chaste/cppwg), so you can use
 your project from Python. For a complete example, see
 [example/README.md](example/README.md).
@@ -20,7 +20,7 @@ of these. The user project virtualenv is created with the
 `--system-site-packages` flag so it can see them, as they are installed as system packages.
 
 If you are **not** working inside the chaste/base image,
-install these dependencies into the system Python (or `pip install` them into project virtualenv) yourself
+install these dependencies into the system Python (or `pip install` them into the project virtualenv) yourself
 before running configuration: `petsc4py`, and `vtk`. Note that the versions must match the versions of PETSc and VTK on your system.
 
 ## Enable Python bindings
@@ -45,8 +45,8 @@ If you answer no, the whole `bindings/` directory is removed and the project is 
 From the project directory, with `CHASTE_SOURCE_DIR` pointing at your Chaste source:
 
 ```sh
-scripts/configure.sh   # configures the build with PyChaste enabled
-scripts/compile.sh     # builds the project, including the Python bindings
+scripts/configure.sh   # configure the build and generate the Python bindings
+scripts/compile.sh     # build the project, including the Python bindings
 ```
 
 ## Install the bindings into the project virtualenv
@@ -84,11 +84,15 @@ modules:
     source_locations:
       - src/
     classes:
-      - name: Hello
+      - name: Hello_myproject
 ```
 
-See [example/README.md](example/README.md) for a full
-example.
+If your class inherits from one that PyChaste already wraps, list that base
+under `external_bases` and add PyChaste's module under `imports`, so that
+cppwg registers the base class before yours. See the
+[cppwg docs on inheritance](https://chaste.github.io/cppwg/inheritance.html).
+
+See [example/README.md](example/README.md) for a full example.
 
 ## Troubleshooting the bindings
 
