@@ -31,7 +31,7 @@ fi
 
 # Create the project virtualenv if it does not already exist.
 # --system-site-packages lets it see native packages provided by the system
-# Python (petsc4py, mpi4py and vtk), which are not pip-installable here. The
+# Python (petsc4py and vtk), which are not pip-installable here. The
 # virtualenv is shared with Python bindings if enabled.
 if [[ ! -d "${VENV_DIR}" ]]; then
 	python3 -m venv --system-site-packages "${VENV_DIR}"

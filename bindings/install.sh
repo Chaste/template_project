@@ -45,7 +45,7 @@ fi
 
 # Create the project virtualenv if it does not already exist.
 # --system-site-packages lets it see native packages provided by the system
-# Python (petsc4py, mpi4py and vtk), which are not pip-installable here. The
+# Python (petsc4py and vtk), which are not pip-installable here. The
 # virtualenv is shared with SBML if enabled.
 if [[ ! -d "${VENV_DIR}" ]]; then
 	python3 -m venv --system-site-packages "${VENV_DIR}"
@@ -53,7 +53,7 @@ fi
 
 # Warn if PyChaste's runtime dependencies are not visible from the virtualenv.
 missing=""
-for module in petsc4py mpi4py vtk; do
+for module in petsc4py vtk; do
 	"${VENV_DIR}/bin/python" -c "import ${module}" >/dev/null 2>&1 || missing="${missing} ${module}"
 done
 if [[ -n "${missing}" ]]; then

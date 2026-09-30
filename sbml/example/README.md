@@ -25,7 +25,7 @@ Alternatively, download it from BioModels and rename it yourself.
 
 > [https://www.biomodels.org/BIOMD0000000003](https://www.biomodels.org/BIOMD0000000003)
 
-The generated C++ class names come from the file name by default, so it is a good idea to give the model file a
+The generated C++ class names come from the file name, so it is a good idea to give the model file a
 C++-friendly name. Here we use `Goldbeter1991`.
 
 ## Convert the model into a Chaste model
@@ -97,5 +97,6 @@ You should see `TestGoldbeter1991SbmlSrnModel` pass, confirming that the model b
 ## Next steps
 
 * To import a different model, repeat the steps above with your own `.xml` file.
-* See the [chaste-sbml documentation](https://chaste.github.io/chaste-sbml/) for the full
-  set of command-line options.
+* See the [command-line options](https://chaste.github.io/chaste-sbml/command-line.html)
+  for the full set, and the [chaste-sbml documentation](https://chaste.github.io/chaste-sbml/)
+  for everything else.
