@@ -26,13 +26,13 @@ MyForce_2 = myproject.MyForce_2
 
 def main():
     # Choose where results are written.
-    chaste.core.OutputFileHandler("Python/MyForce")
+    chaste.OutputFileHandler("Python/MyForce")
 
     # The cell-cycle models need the simulation clock to exist before cells are created.
-    chaste.cell_based.SimulationTime.Instance().SetStartTime(0.0)
+    chaste.SimulationTime.Instance().SetStartTime(0.0)
 
     # Build a small node-based cell population on a honeycomb mesh.
-    generator = chaste.mesh.HoneycombMeshGenerator(5, 5)
+    generator = chaste.HoneycombMeshGenerator(5, 5)
     generating_mesh = generator.GetMesh()
 
     cutoff_length = 1.5  # The distance at which cells interact.
@@ -40,8 +40,8 @@ def main():
     mesh = chaste.mesh.NodesOnlyMesh_2()
     mesh.ConstructNodesWithoutMesh(generating_mesh, cutoff_length)
 
-    transit_type = chaste.cell_based.TransitCellProliferativeType()
-    cell_generator = chaste.cell_based.CellsGenerator["UniformCellCycleModel", "2"]()
+    transit_type = chaste.TransitCellProliferativeType()
+    cell_generator = chaste.CellsGenerator["UniformCellCycleModel", "2"]()
     cells = cell_generator.GenerateBasicRandom(mesh.GetNumNodes(), transit_type)
 
     cell_population = chaste.cell_based.NodeBasedCellPopulation_2(mesh, cells)
