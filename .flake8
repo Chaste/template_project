@@ -1,0 +1,13 @@
+[flake8]
+max_line_length = 120
+
+exclude =
+    __pycache__,
+    .git,
+    .github,
+    .venv,
+    .virtualenv,
+    build,
+    output,
+    venv,
+    virtualenv,
