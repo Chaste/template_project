@@ -33,5 +33,4 @@ mkdir -p "${CHASTE_BUILD_DIR}"
 # Configure
 cd "${CHASTE_BUILD_DIR}"
 cmake "${CHASTE_SOURCE_DIR}" \
-    -DChaste_ENABLE_PYCHASTE="${Chaste_ENABLE_PYCHASTE}" \
-    -DChaste_UPDATE_PROVENANCE="${Chaste_UPDATE_PROVENANCE}"
+    -DChaste_ENABLE_PYCHASTE="${Chaste_ENABLE_PYCHASTE}"

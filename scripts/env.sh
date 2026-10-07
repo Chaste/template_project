@@ -46,8 +46,6 @@ if [[ -z "${CHASTE_TEST_OUTPUT:-}" ]]; then
 	export CHASTE_TEST_OUTPUT="${PROJECT_ROOT}/output"
 fi
 
-Chaste_UPDATE_PROVENANCE="${Chaste_UPDATE_PROVENANCE:-OFF}"
-
 # Enable PyChaste if this project has Python bindings set up. The root
 # CMakeLists.txt gates add_subdirectory(bindings) on the same setting.
 if [[ -f "${PROJECT_ROOT}/bindings/config.yaml" ]]; then
