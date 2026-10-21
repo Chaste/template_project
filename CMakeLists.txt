@@ -1,4 +1,4 @@
-# Copyright (c) 2005-2023, University of Oxford.
+# Copyright (c) 2005-2026, University of Oxford.
 # All rights reserved.
 # 
 # University of Oxford means the Chancellor, Masters and Scholars of the
@@ -52,3 +52,7 @@ find_package(Chaste COMPONENTS continuum_mechanics global io linalg mesh ode pde
 # Change the project name in the line below to match the folder this file is in,
 # i.e. the name of your project.
 chaste_do_project(template_project)
+
+if(Chaste_ENABLE_PYCHASTE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
+    add_subdirectory(bindings)
+endif()
